@@ -111,9 +111,10 @@ export function DataTable({
                   <td
                     key={col.key}
                     className={[
-                      'px-6 py-4 text-sm text-gray-800',
-                      col.align === 'right' ? 'text-right' : '',
-                      'overflow-hidden text-ellipsis whitespace-nowrap',
+                      'py-4 text-sm text-gray-800',
+                      col.align === 'right'
+                        ? 'text-right pl-2 pr-6'
+                        : 'px-6 overflow-hidden text-ellipsis whitespace-nowrap',
                     ].join(' ')}
                   >
                     {renderCell ? renderCell(row, col.key) : (row[col.key] ?? '-')}
