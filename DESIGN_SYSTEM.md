@@ -3,7 +3,7 @@
 React + Vite + Tailwind CSS v4 + Firebase 構成の管理サイト用デザインシステム。
 このドキュメントを Claude に添付することで、毎回デザイン指示をしなくても一貫した UI が作れる。
 
-**バージョン**: v1.0  
+**バージョン**: v1.1  
 **最終更新**: 2026-03-26
 
 ---
@@ -65,7 +65,7 @@ ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Se
 | `--color-danger-hover` | `#DC2626` | Danger ホバー |
 | `--color-danger-light` | `#FEF2F2` | エラー input 背景・danger バッジ背景 |
 | `--color-gray-50` / `--color-bg` | `#F9FAFB` | ページ背景 |
-| `--color-gray-100` | `#F3F4F6` | 読取専用 input 背景・テーブルヘッダ |
+| `--color-gray-100` | `#F3F4F6` | 読取専用 input 背景・テーブルヘッダ・ghost ボタン背景 |
 | `--color-gray-200` | `#E5E7EB` | カード・テーブル行ボーダー |
 | `--color-gray-300` | `#D1D5DB` | input ボーダー・セカンダリボタン |
 | `--color-gray-500` | `#6B7280` | プレースホルダー・サブテキスト |
@@ -127,8 +127,8 @@ ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Se
 | トークン | 値 | 対象 |
 |---|---|---|
 | `--radius-card` | 12px | カード・モーダル |
-| `--radius-input` | 8px | input・button・ページネーション |
-| `--radius-badge` | 6px | バッジ・ドロップダウン |
+| `--radius-input` | 8px | input・button（md/lg）・ページネーション |
+| `--radius-badge` | 6px | バッジ・ドロップダウン・ghost ボタン |
 | `--shadow-card` | `0 1px 3px rgba(0,0,0,0.1)` | カード |
 | `--shadow-modal` | `0 20px 60px rgba(0,0,0,0.2)` | モーダル |
 | `--shadow-dropdown` | `0 4px 16px rgba(0,0,0,0.12)` | ドロップダウン |
@@ -142,13 +142,28 @@ ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Se
 ```jsx
 import { Button } from '../design-system';
 
-// variant: 'primary'(default) | 'secondary' | 'danger'
-// size: 'md'(default) | 'lg'
-// ※ md・lg ともに高さは同一（上下 padding: 10px）。lg は横幅のみ広い。
+// variant: 'primary'(default) | 'secondary' | 'danger' | 'ghost'
+// size:    'md'(default) | 'lg' | 'sm'
+```
 
+| variant | 用途 | スタイル |
+|---|---|---|
+| `primary` | 登録・更新など主要アクション | 青背景・白テキスト |
+| `secondary` | 戻るボタン | 白背景・グレーボーダー |
+| `danger` | 削除ボタン | 赤背景・白テキスト |
+| `ghost` | **テーブル内の編集ボタン** | `#F3F4F6` 背景・ボーダーなし |
+
+| size | padding | 用途 |
+|---|---|---|
+| `md` | `10px 20px` | 通常ボタン（登録・更新・戻る・削除） |
+| `lg` | `10px 32px` | 横幅が必要な場面（保存ボタン全幅など） |
+| `sm` | `8px 16px` | **テーブル内の編集ボタン** |
+
+```jsx
 <Button onClick={handleSubmit}>登録する</Button>
 <Button variant="secondary" onClick={() => navigate(-1)}>戻る</Button>
 <Button variant="danger" onClick={() => setShowDelete(true)}>削除する</Button>
+<Button variant="ghost" size="sm" onClick={() => navigate(`/edit/${row.id}`)}>編集</Button>
 <Button size="lg" className="w-full">保存する</Button>
 <Button disabled>処理中...</Button>
 ```
@@ -161,6 +176,11 @@ import { Button } from '../design-system';
 | 編集 | `更新する`(primary) · `戻る`(secondary) · `削除する`(danger) |
 | 詳細 | `編集する`(primary) · `戻る`(secondary) |
 | 一覧 | なし（テーブル上部に「追加」ボタン） |
+
+**テーブル内編集ボタン（必ずこのスタイルを使う）:**
+```jsx
+<Button variant="ghost" size="sm" onClick={() => navigate(`/edit/${row.id}`)}>編集</Button>
+```
 
 ---
 
@@ -269,7 +289,7 @@ const columns = [
   { key: 'name',     label: '名称' },
   { key: 'worker',   label: '作業者', width: 'w-32' },
   { key: 'date',     label: '登録日時', width: 'w-40' },
-  { key: '_actions', label: '', width: 'w-24', align: 'right' },
+  { key: '_actions', label: '', width: 'w-24', align: 'right' },  // ← align: 'right' 必須
 ];
 
 <DataTable
@@ -277,7 +297,7 @@ const columns = [
   rows={pagedItems}
   renderCell={(row, key) => {
     if (key === '_actions') return (
-      <Button variant="secondary" onClick={() => navigate(`/edit/${row.id}`)}>編集</Button>
+      <Button variant="ghost" size="sm" onClick={() => navigate(`/edit/${row.id}`)}>編集</Button>
     );
     return row[key] ?? '-';
   }}
@@ -291,6 +311,10 @@ const columns = [
 />
 ```
 
+**DataTable の列定義ルール:**
+- `align: 'right'` を指定した列はテキスト省略（overflow-hidden）が無効になる
+- アクションボタン列は必ず `align: 'right'` を指定する
+
 ---
 
 ### Modal
@@ -298,7 +322,6 @@ const columns = [
 ```jsx
 import { Modal } from '../design-system';
 
-{/* 削除確認 */}
 <Modal
   open={showDeleteDialog}
   onClose={() => setShowDeleteDialog(false)}
@@ -368,11 +391,9 @@ Firestoreコレクション: products
          ↓
 ③ Claude がコンポーネントファイル + 更新済み DESIGN_SYSTEM.md を出力
          ↓
-④ design-system リポジトリの feature ブランチに追加・確認
+④ admin-design-system リポジトリの feature ブランチに追加・確認
          ↓
-⑤ main にマージ
-         ↓
-⑥ 他プロジェクトへは必要に応じて手動コピー
+⑤ main にマージ → 各プロジェクトへ手動コピー
 ```
 
 **このドキュメントが常に最新であることが唯一のルール。**
@@ -387,7 +408,8 @@ Firestoreコレクション: products
 <FormField
   label={<>取引先コード <BadgeLabel color="success">✓ マスタから自動入力</BadgeLabel></>}
 >
-  <Input name="clientCode" value={formData.clientCode} onChange={handleChange} readOnly={clientLocked} width="w-28" />
+  <Input name="clientCode" value={formData.clientCode} onChange={handleChange}
+    readOnly={clientLocked} width="w-28" />
 </FormField>
 ```
 
@@ -444,3 +466,12 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   </p>
 </Modal>
 ```
+
+---
+
+## 変更履歴
+
+| バージョン | 日付 | 内容 |
+|---|---|---|
+| v1.1 | 2026-03-26 | Button に `ghost` variant・`sm` size 追加 / `leading-none` 削除によるボタン高さ修正 / Table アクション列の padding 修正 |
+| v1.0 | 2026-03-26 | 初版リリース |
