@@ -3,8 +3,46 @@
 React + Vite + Tailwind CSS v4 + Firebase 構成の管理サイト用デザインシステム。
 このドキュメントを Claude に添付することで、毎回デザイン指示をしなくても一貫した UI が作れる。
 
-**バージョン**: v1.1  
-**最終更新**: 2026-03-26
+**バージョン**: v1.3  
+**最終更新**: 2026-03-28
+
+---
+
+## 設計方針
+
+### このドキュメントの使い方
+
+複数プロジェクトで共通して使う UI の定義書。Claude にこのファイルを添付することで、デザイン指示なしに一貫した UI が作れる。
+
+### コンポーネントの整理ルール
+
+- **各コンポーネントセクション内にパターンを収録する。** 「テーブルを作りたい」→ `DataTable` セクションを見れば基本パターンも応用パターンも揃っている状態を目指す。
+- **「よくある実装パターン」は複数コンポーネントをまたぐものに限定する。** 単一コンポーネントのパターンはそのコンポーネントのセクションに入れる。
+
+### 新しいコンポーネント・パターンの追加判断
+
+| 種別 | 対応 |
+|---|---|
+| 汎用性が高い（複数プロジェクトで使える） | コンポーネントとしてデザインシステムに追加 |
+| 汎用性が低い（プロジェクト固有） | 追加するかどうかオーナーに確認してから追加 |
+
+**Claude はこの判断を自動で行い、汎用性が低いと判断した場合は必ず確認を取ること。**
+
+### デザインシステム更新のフロー
+
+```
+① 新プロジェクトで新しい UI が必要になる
+         ↓
+② Claude が汎用性を判断
+   ・汎用性あり → コンポーネントとして実装 + DESIGN_SYSTEM.md を更新
+   ・汎用性なし → オーナーに確認してから判断
+         ↓
+③ 承認されたら admin-design-system リポジトリに追加
+         ↓
+④ 各プロジェクトへ手動コピー
+```
+
+**このドキュメントが常に最新であることが唯一のルール。**
 
 ---
 
@@ -214,12 +252,27 @@ import { Card, SectionTitle, Divider } from '../design-system';
   <Divider />
   ...more fields
 </Card>
+```
 
-{/* テーブルラップ（padding なし） */}
+**Card 内にテーブルを表示する場合（タイトル + 枠付きテーブル）:**
+
+```jsx
 <Card padding="none">
-  <table>...</table>
+  <div className="p-8 pb-0">
+    <SectionTitle>セクション名</SectionTitle>
+  </div>
+  <div className="px-8 pb-8">
+    <div className="rounded-card border border-gray-200 overflow-hidden">
+      <table className="w-full text-sm">
+        ...
+      </table>
+    </div>
+  </div>
 </Card>
 ```
+
+- `SectionTitle` が持つ `mb-5` がそのままテーブルとの間隔として機能するため `pb-0` にする
+- テーブルを `rounded-card border` のラッパーで囲むことでカード内に浮いた形になる
 
 ---
 
@@ -315,6 +368,91 @@ const columns = [
 - `align: 'right'` を指定した列はテキスト省略（overflow-hidden）が無効になる
 - アクションボタン列は必ず `align: 'right'` を指定する
 
+#### Rowspan テーブル（グループ化・チェックボックス一括削除）
+
+Firestore からフラットに取得したレコードを特定キーでグループ化して rowspan 表示する。DataTable コンポーネントでは rowspan が扱えないため手書きの `<table>` で実装する。
+
+```jsx
+// フラットなレコードを連続する同一キーでグループ化
+function groupRecords(records) {
+  const groups = [];
+  let current = null;
+  for (const record of records) {
+    const key = `${record.date}||${record.from}||${record.subject}`;
+    if (current && current.key === key) {
+      current.rows.push(record);
+    } else {
+      current = { key, rows: [record] };
+      groups.push(current);
+    }
+  }
+  return groups;
+}
+
+// state
+const [selected, setSelected] = useState(new Set()); // グループキーのSet
+
+const toggleGroup = (key) => {
+  setSelected(prev => {
+    const next = new Set(prev);
+    next.has(key) ? next.delete(key) : next.add(key);
+    return next;
+  });
+};
+
+// 全選択（indeterminate 対応）
+const pagedKeys   = paged.map(g => g.key);
+const allSelected = pagedKeys.length > 0 && pagedKeys.every(k => selected.has(k));
+const someSelected = pagedKeys.some(k => selected.has(k));
+
+// レンダリング
+<table className="w-full text-sm border-collapse">
+  <thead>
+    <tr className="bg-gray-100 border-b border-gray-200">
+      <th className="px-4 py-3 w-10">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          ref={el => { if (el) el.indeterminate = someSelected && !allSelected; }}
+          onChange={toggleAll}
+          className="w-4 h-4 cursor-pointer accent-primary"
+        />
+      </th>
+      <th className="text-left px-4 py-3 ...">日付</th>
+      {/* 他の列ヘッダー */}
+    </tr>
+  </thead>
+  <tbody>
+    {paged.map((group, gi) => {
+      const { key, rows } = group;
+      const isChecked = selected.has(key);
+      const bgClass = isChecked ? 'bg-primary-light' : gi % 2 === 0 ? '' : 'bg-gray-50/50';
+      return rows.map((row, ri) => (
+        <tr key={row.id} className={bgClass}>
+          {ri === 0 && (
+            <>
+              <td rowSpan={rows.length} className="px-4 py-2.5 align-top border-b border-gray-200">
+                <input type="checkbox" checked={isChecked} onChange={() => toggleGroup(key)}
+                  className="w-4 h-4 cursor-pointer accent-primary" />
+              </td>
+              <td rowSpan={rows.length} className="px-4 py-2.5 text-sm align-top border-b border-gray-200">
+                {row.date}
+              </td>
+            </>
+          )}
+          <td className="px-4 py-2.5 text-sm border-b border-gray-200">{row.worker}</td>
+        </tr>
+      ));
+    })}
+  </tbody>
+</table>
+```
+
+**注意事項:**
+- `border-collapse` を `table` に指定しないと rowspan のボーダーが正しく機能しない
+- グループ化は**連続する行**に対して行う。Firestore の `orderBy` がグループの連続性を保証する必要がある
+- 選択行のハイライトは `bg-primary-light`（薄青）を使う
+
 ---
 
 ### Modal
@@ -340,6 +478,56 @@ import { Modal } from '../design-system';
 ```
 
 width: `'sm'` | `'md'`(default) | `'lg'`
+
+#### エラーモーダル
+
+処理結果がエラーの場合に使用。「閉じる」ボタンのみ。
+
+```jsx
+<Modal
+  open={modal?.type === 'error'}
+  onClose={closeModal}
+  title="処理結果"
+  footer={<Button variant="secondary" onClick={closeModal}>閉じる</Button>}
+>
+  <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+    以下のエラーを修正してから再度お試しください。
+  </p>
+  <div className="bg-danger-light border border-danger rounded-input p-4">
+    {errors.map((e, i) => (
+      <p key={i} className="text-sm text-danger mb-1 last:mb-0">• {e}</p>
+    ))}
+  </div>
+</Modal>
+```
+
+#### 確認モーダル（件数表示付き）
+
+インポートなど件数を伴う処理の前確認に使用。
+
+```jsx
+<Modal
+  open={modal?.type === 'confirm'}
+  onClose={closeModal}
+  title="処理の確認"
+  footer={
+    <>
+      <Button variant="secondary" onClick={closeModal}>キャンセル</Button>
+      <Button onClick={handleExecute}>実行する</Button>
+    </>
+  }
+>
+  <p className="text-sm text-gray-600 mb-5 leading-relaxed">
+    以下の内容で処理します。よろしいですか？
+  </p>
+  <div className="bg-primary-light border border-primary rounded-input px-5 py-4 text-center">
+    <p className="text-xs text-primary font-semibold mb-1">処理件数</p>
+    <p className="text-3xl font-bold text-primary">
+      {count}<span className="text-base ml-1">件</span>
+    </p>
+  </div>
+</Modal>
+```
 
 ---
 
@@ -381,26 +569,10 @@ Firestoreコレクション: products
 
 ---
 
-## デザインシステム改修のフロー
-
-```
-① 新プロジェクトで新コンポーネントが必要になる
-         ↓
-② Claude に DESIGN_SYSTEM.md を添付して依頼
-   例:「Tabs コンポーネントを追加してください」
-         ↓
-③ Claude がコンポーネントファイル + 更新済み DESIGN_SYSTEM.md を出力
-         ↓
-④ admin-design-system リポジトリの feature ブランチに追加・確認
-         ↓
-⑤ main にマージ → 各プロジェクトへ手動コピー
-```
-
-**このドキュメントが常に最新であることが唯一のルール。**
-
----
-
 ## よくある実装パターン
+
+*複数コンポーネントをまたぐパターン、または App 固有の実装をここに記載する。*
+*単一コンポーネントのパターンは各コンポーネントのセクションに記載すること。*
 
 ### 読取専用 Input（マスタ自動入力）
 
@@ -441,30 +613,81 @@ const filtered = items.filter(item => item.name?.includes(searchTerm));
 const paged    = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 ```
 
-### 削除確認モーダル
+### ヘッダーのドロップダウンナビゲーション（App.jsx 固有）
+
+サブメニューを持つナビは `DropdownNavMenu` コンポーネントとして App.jsx に実装する。ボタンとドロップダウンの間に `h-[4px]` の透明ブリッジを配置して `onMouseLeave` の誤発火を防ぐ。
 
 ```jsx
-const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+function DropdownNavMenu({ label, basePath, items }) {
+  const location = useLocation();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  const isActive = location.pathname.startsWith(basePath);
 
-// PageHeader の actions に追加
-<Button variant="danger" onClick={() => setShowDeleteDialog(true)}>削除する</Button>
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
-// ページ末尾に配置
-<Modal
-  open={showDeleteDialog}
-  onClose={() => setShowDeleteDialog(false)}
-  title="削除の確認"
-  footer={
-    <>
-      <Button variant="secondary" onClick={() => setShowDeleteDialog(false)}>キャンセル</Button>
-      <Button variant="danger" onClick={handleDelete}>削除する</Button>
-    </>
-  }
->
-  <p className="text-sm text-gray-600 leading-relaxed">
-    このデータを削除しますか？この操作は取り消せません。
-  </p>
-</Modal>
+  return (
+    <div ref={ref} className="relative" onMouseLeave={() => setOpen(false)}>
+      <button
+        onMouseEnter={() => setOpen(true)}
+        onClick={() => setOpen(v => !v)}
+        className={[
+          'text-sm font-semibold px-3 py-2 rounded-badge transition-all duration-150',
+          'border-none cursor-pointer flex items-center gap-1 font-[inherit]',
+          isActive ? 'text-primary bg-primary-light' : 'text-gray-500 bg-transparent hover:bg-gray-100',
+        ].join(' ')}
+      >
+        {label}
+        <span className="text-[10px] opacity-70">▼</span>
+      </button>
+
+      {open && (
+        <>
+          {/* 透明ブリッジ：隙間での onMouseLeave 誤発火を防ぐ */}
+          <div className="absolute top-full left-0 w-full h-[4px]" />
+          <div className="absolute top-[calc(100%+4px)] left-0 bg-white rounded-input border border-gray-200 min-w-40 z-[1000] shadow-dropdown overflow-hidden">
+            {items.map(item => (
+              <Link key={item.to} to={item.to} onClick={() => setOpen(false)}
+                className={[
+                  'block px-4 py-3 text-sm font-medium no-underline transition-colors duration-100',
+                  location.pathname.startsWith(item.to)
+                    ? 'text-primary bg-primary-light' : 'text-gray-700 hover:bg-gray-50',
+                ].join(' ')}
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+```
+
+### loading 状態と ref の共存（contentEditable など）
+
+`if (loading) return` の早期 return を使うと、フォーム DOM がマウントされる前に ref へのアクセスが発生し `ref.current` が `null` になる。`hidden` で切り替えることで DOM を常に保持する。
+
+```jsx
+// NG: loading 中にフォームDOMが存在しないため ref が null になる
+if (loading) return <div>読み込み中...</div>;
+
+// OK: loading 中も DOM を保持し続ける
+return (
+  <div>
+    {loading && <div className="flex items-center justify-center py-20">読み込み中...</div>}
+    <div className={loading ? 'hidden' : ''}>
+      {/* ref を使うコンポーネントを含むフォーム全体 */}
+    </div>
+  </div>
+);
 ```
 
 ---
@@ -473,5 +696,7 @@ const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
 | バージョン | 日付 | 内容 |
 |---|---|---|
+| v1.3 | 2026-03-28 | 設計方針セクション追加 / コンポーネント内パターン整理（DataTableにrowspan・ModalにErrorモーダル・確認モーダルを統合）/ よくある実装パターンをコンポーネント横断のものに限定 |
+| v1.2 | 2026-03-28 | DropdownNavMenu パターン追加 / Card内テーブルパターン更新 / loading + ref の注意事項追加 / rowspanテーブル・チェックボックス一括削除パターン追加 |
 | v1.1 | 2026-03-26 | Button に `ghost` variant・`sm` size 追加 / `leading-none` 削除によるボタン高さ修正 / Table アクション列の padding 修正 |
 | v1.0 | 2026-03-26 | 初版リリース |

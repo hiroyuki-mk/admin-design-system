@@ -1,0 +1,1312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Design System — Showcase</title>
+
+<style>
+/* ============================================================
+   Design Tokens
+   ============================================================ */
+:root {
+  --color-primary:        #3B82F6;
+  --color-primary-hover:  #2563EB;
+  --color-primary-light:  #EFF6FF;
+  --color-success:        #10B981;
+  --color-success-light:  #D1FAE5;
+  --color-danger:         #EF4444;
+  --color-danger-hover:   #DC2626;
+  --color-danger-light:   #FEF2F2;
+  --color-gray-50:        #F9FAFB;
+  --color-gray-100:       #F3F4F6;
+  --color-gray-200:       #E5E7EB;
+  --color-gray-300:       #D1D5DB;
+  --color-gray-400:       #9CA3AF;
+  --color-gray-500:       #6B7280;
+  --color-gray-700:       #374151;
+  --color-gray-800:       #1F2937;
+  --color-gray-900:       #111827;
+  --color-bg:             #F9FAFB;
+  --radius-card:          12px;
+  --radius-input:         8px;
+  --radius-button:        8px;
+  --radius-badge:         6px;
+  --shadow-card:          0 1px 3px rgba(0,0,0,0.1);
+  --shadow-modal:         0 20px 60px rgba(0,0,0,0.2);
+  --shadow-dropdown:      0 4px 16px rgba(0,0,0,0.12);
+}
+
+/* ============================================================
+   Reset & Base
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 14px;
+  color: var(--color-gray-900);
+  background: var(--color-bg);
+  line-height: 1.6;
+}
+code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+
+/* ============================================================
+   Showcase Layout
+   ============================================================ */
+.showcase-header {
+  background: #fff;
+  border-bottom: 1px solid var(--color-gray-200);
+  padding: 0 24px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+.showcase-header-title {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 15px; font-weight: 700; color: var(--color-gray-900);
+}
+.showcase-header-badge {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: 99px;
+}
+.showcase-nav {
+  display: flex; gap: 2px;
+}
+.showcase-nav a {
+  font-size: 13px; font-weight: 500; color: var(--color-gray-500);
+  padding: 6px 10px; border-radius: 6px;
+  text-decoration: none; transition: all .15s;
+}
+.showcase-nav a:hover { color: var(--color-gray-900); background: var(--color-gray-100); }
+
+.showcase-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+/* セクション */
+.section { margin-bottom: 72px; }
+.section-label {
+  font-size: 11px; font-weight: 700; letter-spacing: .12em;
+  color: var(--color-primary); text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.section-title {
+  font-size: 22px; font-weight: 700; color: var(--color-gray-900);
+  margin-bottom: 4px;
+}
+.section-desc {
+  font-size: 13px; color: var(--color-gray-500);
+  margin-bottom: 28px;
+}
+.section-divider {
+  border: none; border-top: 1px solid var(--color-gray-200);
+  margin-bottom: 28px;
+}
+
+/* デモブロック */
+.demo-block {
+  background: #fff;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.demo-canvas {
+  padding: 32px;
+  background: var(--color-gray-50);
+  border-bottom: 1px solid var(--color-gray-200);
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;
+}
+.demo-canvas.white { background: #fff; }
+.demo-canvas.column { flex-direction: column; }
+.demo-code {
+  padding: 14px 20px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--color-gray-500);
+  background: #fff;
+  white-space: pre;
+  overflow-x: auto;
+}
+
+.demo-grid-2 {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 24px;
+  align-items: start;
+}
+
+.component-name {
+  font-size: 11px; font-weight: 600; color: var(--color-gray-400);
+  margin-bottom: 12px;
+}
+
+/* ============================================================
+   ★ Design System Components
+   ============================================================ */
+
+/* --- Button --- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: inherit; font-size: 14px; font-weight: 600;
+  border: 1px solid transparent; border-radius: var(--radius-button);
+  cursor: pointer; transition: background .15s, border-color .15s, color .15s;
+  white-space: nowrap;
+  padding: 10px 20px; /* md */
+}
+.btn-lg  { padding: 10px 32px; }
+.btn-sm  { padding: 8px 16px; border-radius: var(--radius-badge); font-weight: 500; }
+.btn-primary   { background: var(--color-primary); color: #fff; }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-secondary { background: #fff; color: var(--color-gray-700); border-color: var(--color-gray-300); }
+.btn-secondary:hover { background: var(--color-gray-50); }
+.btn-danger    { background: var(--color-danger); color: #fff; }
+.btn-danger:hover { background: var(--color-danger-hover); }
+.btn-ghost     { background: var(--color-gray-100); color: var(--color-gray-700); border-color: transparent; }
+.btn-ghost:hover { background: var(--color-gray-200); }
+.btn:disabled  { background: var(--color-gray-100); color: var(--color-gray-400); cursor: default; }
+
+/* --- Input --- */
+.input {
+  width: 100%; padding: 10px 14px;
+  font-family: inherit; font-size: 14px; color: var(--color-gray-900);
+  background: #fff; border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-input); outline: none;
+  transition: border-color .15s;
+}
+.input:focus { border-color: var(--color-primary); }
+.input::placeholder { color: var(--color-gray-400); }
+.input.error { border-color: var(--color-danger); background: var(--color-danger-light); }
+.input.readonly { background: var(--color-gray-100); color: var(--color-gray-500); cursor: default; }
+.input-error-msg { font-size: 12px; color: var(--color-danger); margin-top: 6px; }
+
+textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
+
+/* --- Checkbox --- */
+.checkbox-label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; }
+.checkbox-label input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--color-primary); cursor: pointer; }
+.checkbox-label span { font-size: 14px; color: var(--color-gray-700); }
+
+/* --- Card --- */
+.card {
+  background: #fff;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+.card-body { padding: 32px; }
+.card-section-title { font-size: 18px; font-weight: 600; color: var(--color-gray-900); margin-bottom: 20px; }
+.card-divider { border: none; border-top: 2px solid var(--color-gray-200); margin: 32px 0; }
+
+/* --- FormField --- */
+.form-field { margin-bottom: 24px; }
+.form-field.last { margin-bottom: 0; }
+.field-label {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px;
+  font-size: 14px; font-weight: 600; color: var(--color-gray-700);
+  margin-bottom: 8px;
+}
+.field-hint { font-size: 12px; color: var(--color-gray-500); font-weight: 400; }
+.field-required {
+  font-size: 11px; font-weight: 600; color: var(--color-danger);
+  background: var(--color-danger-light); padding: 2px 6px; border-radius: 4px;
+}
+
+/* --- PageHeader --- */
+.page-header {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 24px;
+  margin-bottom: 24px;
+}
+.page-header-left { flex: 1; min-width: 0; }
+.page-title { font-size: 28px; font-weight: 700; color: var(--color-gray-900); line-height: 1.2; }
+.page-subtitle { font-size: 14px; color: var(--color-gray-500); margin-top: 6px; }
+.page-header-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; padding-top: 4px; }
+
+/* --- Badge --- */
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 14px; font-weight: 600;
+  padding: 4px 20px; border-radius: var(--radius-badge);
+}
+.badge-primary { background: var(--color-primary-light); color: var(--color-primary); }
+.badge-success { background: var(--color-success-light); color: var(--color-success); }
+.badge-danger  { background: #ffefef; color: var(--color-danger); }
+.badge-warning { background: #FEF9C3; color: #854D0E; }
+.badge-gray    { background: var(--color-gray-100); color: var(--color-gray-500); }
+
+.badge-label {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 11px; font-weight: 600;
+  padding: 2px 8px; border-radius: var(--radius-badge);
+}
+.badge-label-success { background: var(--color-success-light); color: var(--color-success); }
+.badge-label-primary { background: var(--color-primary-light); color: var(--color-primary); }
+
+/* --- Table --- */
+.table-card { background: #fff; border-radius: var(--radius-card); box-shadow: var(--shadow-card); overflow: hidden; }
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table thead { background: var(--color-gray-50); border-bottom: 1px solid var(--color-gray-200); }
+.data-table th {
+  padding: 12px 24px; text-align: left;
+  font-size: 14px; font-weight: 600; color: var(--color-gray-700);
+  white-space: nowrap;
+}
+.data-table th.right { text-align: right; }
+.data-table tbody tr { border-bottom: 1px solid var(--color-gray-200); transition: background .1s; }
+.data-table tbody tr:last-child { border-bottom: none; }
+.data-table tbody tr:hover { background: var(--color-gray-50); }
+.data-table td { padding: 16px 24px; font-size: 14px; color: var(--color-gray-800); white-space: nowrap; }
+.data-table td.right { text-align: right; }
+.table-link {
+  background: none; border: none; color: var(--color-primary); font-size: 14px; font-weight: 700;
+  cursor: pointer; padding: 0; text-decoration: none;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+  max-width: 360px; display: block;
+}
+.table-link:hover { color: var(--color-primary-hover); }
+
+/* ページネーション */
+.pagination {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 24px; border-top: 1px solid var(--color-gray-200);
+  background: var(--color-gray-50);
+}
+.pagination-info { font-size: 14px; color: var(--color-gray-500); }
+.pagination-nav { display: flex; align-items: center; gap: 8px; }
+.pagination-nav span { font-size: 14px; color: var(--color-gray-700); padding: 0 8px; }
+.page-btn {
+  font-family: inherit; font-size: 14px; font-weight: 500; color: var(--color-gray-700);
+  background: #fff; border: 1px solid var(--color-gray-300);
+  padding: 8px 16px; border-radius: var(--radius-input); cursor: pointer;
+  transition: background .1s;
+}
+.page-btn:hover:not(:disabled) { background: var(--color-gray-50); }
+.page-btn:disabled { background: var(--color-gray-100); color: var(--color-gray-400); cursor: default; }
+
+/* --- Modal --- */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
+  display: flex; align-items: center; justify-content: center; z-index: 9999; padding: 16px;
+}
+.modal-box {
+  background: #fff; border-radius: var(--radius-card); padding: 32px;
+  width: 100%; max-width: 440px; box-shadow: var(--shadow-modal);
+}
+.modal-title { font-size: 20px; font-weight: 700; color: var(--color-gray-900); margin-bottom: 8px; }
+.modal-body { font-size: 14px; color: var(--color-gray-600); line-height: 1.7; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+
+/* --- Detail Row --- */
+.detail-row {
+  padding: 20px 24px; border-bottom: 1px solid var(--color-gray-200);
+  cursor: pointer; transition: background .15s; position: relative;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-row:hover { background: var(--color-gray-100); }
+.detail-label { font-size: 12px; font-weight: 600; color: var(--color-gray-500); margin-bottom: 8px; }
+.detail-value { font-size: 15px; color: var(--color-gray-900); line-height: 1.6; white-space: pre-wrap; word-break: break-word; }
+.detail-copy-hint {
+  position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+  padding: 6px 12px; font-size: 13px; font-weight: 500;
+  color: #fff; background: var(--color-primary); border-radius: var(--radius-badge);
+  pointer-events: none; opacity: 0; transition: opacity .15s;
+}
+.detail-row:hover .detail-copy-hint { opacity: 1; }
+.static-row { padding: 20px 24px; border-bottom: 1px solid var(--color-gray-200); }
+.static-row:last-child { border-bottom: none; }
+
+/* --- App Header (ナビ) --- */
+.app-header {
+  background: #fff; border-bottom: 1px solid var(--color-gray-200);
+  padding: 16px 24px; display: flex; justify-content: space-between; align-items: center;
+  height: 72.5px;
+}
+.app-logo { display: flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 700; color: #000; }
+.app-logo-icon {
+  width: 32px; height: 32px; background: var(--color-primary);
+  border-radius: 8px; display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700;
+}
+.app-nav { display: flex; gap: 4px; align-items: center; }
+.nav-link {
+  font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 6px;
+  text-decoration: none; transition: all .15s; color: var(--color-gray-500); background: transparent;
+  border: none; cursor: pointer; font-family: inherit;
+}
+.nav-link:hover { background: var(--color-gray-100); }
+.nav-link.active { color: var(--color-primary); background: var(--color-primary-light); }
+.user-pill {
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid var(--color-gray-200); background: var(--color-gray-50);
+  padding: 8px 14px; border-radius: 6px; font-size: 14px; font-weight: 500; color: var(--color-gray-700);
+  line-height: 1;
+}
+
+/* --- Login Page --- */
+.login-card { max-width: 400px; margin: 0 auto; }
+.login-card .card-body { padding: 48px 32px; }
+.google-btn {
+  width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 12px 24px; background: #fff; border: 1px solid var(--color-gray-300);
+  border-radius: var(--radius-input); font-size: 15px; font-weight: 500; color: var(--color-gray-700);
+  cursor: pointer; transition: all .2s; font-family: inherit;
+}
+.google-btn:hover { background: var(--color-gray-50); border-color: var(--color-gray-400); }
+
+/* --- Color Palette --- */
+.color-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.color-swatch { border-radius: 8px; overflow: hidden; border: 1px solid var(--color-gray-200); }
+.color-chip { height: 56px; }
+.color-info { padding: 10px 12px; background: #fff; }
+.color-name { font-size: 12px; font-weight: 600; color: var(--color-gray-700); }
+.color-hex { font-size: 11px; color: var(--color-gray-500); font-family: 'DM Mono', monospace; }
+
+/* --- Tokens --- */
+.token-table { width: 100%; border-collapse: collapse; }
+.token-table th, .token-table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--color-gray-200); font-size: 13px; }
+.token-table th { font-weight: 600; color: var(--color-gray-700); background: var(--color-gray-50); }
+.token-table td { color: var(--color-gray-800); }
+.token-table td code { font-family: 'DM Mono', monospace; font-size: 12px; color: var(--color-primary); background: var(--color-primary-light); padding: 2px 6px; border-radius: 4px; }
+
+/* --- Toast Demo --- */
+.toast {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--color-gray-900); color: #fff;
+  padding: 10px 16px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* アニメーション */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.section { animation: fadeIn .4s ease both; }
+
+/* モーダル表示制御 */
+#modal-overlay { display: none; }
+#modal-overlay.open { display: flex; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     Showcase ヘッダー（固定ナビ）
+     ============================================================ -->
+<header class="showcase-header">
+  <div class="showcase-header-title">
+    <div class="app-logo-icon">A</div>
+    Admin Design System
+    <span class="showcase-header-badge">v1.2</span>
+  </div>
+  <nav class="showcase-nav">
+    <a href="#tokens">トークン</a>
+    <a href="#button">Button</a>
+    <a href="#input">Input</a>
+    <a href="#card">Card</a>
+    <a href="#pageheader">PageHeader</a>
+    <a href="#table">Table</a>
+    <a href="#modal">Modal</a>
+    <a href="#badge">Badge</a>
+    <a href="#pages">画面パターン</a>
+    <a href="#dropdown">DropdownNav</a>
+  </nav>
+</header>
+
+<main class="showcase-body">
+
+  <!-- ============================================================
+       Hero
+       ============================================================ -->
+  <div style="margin-bottom: 64px;">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+      <div style="width:48px;height:48px;background:var(--color-primary);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;">A</div>
+      <div>
+        <div style="font-size:32px;font-weight:700;color:var(--color-gray-900);">Admin Design System <small style="font-size:16px;color:var(--color-gray-500);">v1.2</small></div>
+        <div style="font-size:14px;color:var(--color-gray-500);margin-top:2px;">React + Vite + Tailwind CSS v4 + Firebase — 管理サイト共通UIライブラリ</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:32px;margin-top:24px;">
+      <div style="text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--color-primary);">11</div>
+        <div style="font-size:12px;color:var(--color-gray-500);">コンポーネント</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--color-primary);">4</div>
+        <div style="font-size:12px;color:var(--color-gray-500);">画面パターン</div>
+      </div>
+      <div style="text-align:center;">
+        <div style="font-size:28px;font-weight:700;color:var(--color-primary);">20+</div>
+        <div style="font-size:12px;color:var(--color-gray-500);">デザイントークン</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       1. デザイントークン
+       ============================================================ -->
+  <section class="section" id="tokens">
+    <div class="section-label">Foundation</div>
+    <div class="section-title">デザイントークン</div>
+    <div class="section-desc">tokens.css で @theme 定義。Tailwind クラスから参照可能。</div>
+    <hr class="section-divider">
+
+    <!-- カラー -->
+    <p class="component-name">COLOR PALETTE</p>
+    <div class="color-grid" style="margin-bottom:28px;">
+      <div class="color-swatch"><div class="color-chip" style="background:#3B82F6;"></div><div class="color-info"><div class="color-name">primary</div><div class="color-hex">#3B82F6</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#2563EB;"></div><div class="color-info"><div class="color-name">primary-hover</div><div class="color-hex">#2563EB</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#EFF6FF;"></div><div class="color-info"><div class="color-name">primary-light</div><div class="color-hex">#EFF6FF</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#10B981;"></div><div class="color-info"><div class="color-name">success</div><div class="color-hex">#10B981</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#EF4444;"></div><div class="color-info"><div class="color-name">danger</div><div class="color-hex">#EF4444</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#F9FAFB;border:1px solid #E5E7EB;"></div><div class="color-info"><div class="color-name">gray-50 / bg</div><div class="color-hex">#F9FAFB</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#F3F4F6;"></div><div class="color-info"><div class="color-name">gray-100</div><div class="color-hex">#F3F4F6</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#E5E7EB;"></div><div class="color-info"><div class="color-name">gray-200</div><div class="color-hex">#E5E7EB</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#D1D5DB;"></div><div class="color-info"><div class="color-name">gray-300</div><div class="color-hex">#D1D5DB</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#6B7280;"></div><div class="color-info"><div class="color-name">gray-500</div><div class="color-hex">#6B7280</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#374151;"></div><div class="color-info"><div class="color-name">gray-700</div><div class="color-hex">#374151</div></div></div>
+      <div class="color-swatch"><div class="color-chip" style="background:#111827;"></div><div class="color-info"><div class="color-name">gray-900</div><div class="color-hex">#111827</div></div></div>
+    </div>
+
+    <!-- トークン表 -->
+    <p class="component-name" style="margin-top:24px;">SPACING / RADIUS / SHADOW</p>
+    <div class="demo-block">
+      <table class="token-table">
+        <thead><tr><th>トークン</th><th>値</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td><code>--radius-card</code></td><td>12px</td><td>カード、モーダル</td></tr>
+          <tr><td><code>--radius-input</code></td><td>8px</td><td>input、button、ページネーション</td></tr>
+          <tr><td><code>--radius-badge</code></td><td>6px</td><td>バッジ、ツールチップ、ドロップダウン</td></tr>
+          <tr><td><code>--shadow-card</code></td><td>0 1px 3px rgba(0,0,0,.1)</td><td>カード</td></tr>
+          <tr><td><code>--shadow-modal</code></td><td>0 20px 60px rgba(0,0,0,.2)</td><td>モーダル</td></tr>
+          <tr><td><code>max-width-list</code></td><td>1200px</td><td>一覧画面の最大幅</td></tr>
+          <tr><td><code>max-width-form</code></td><td>1400px</td><td>登録・編集・詳細画面の最大幅</td></tr>
+          <tr><td>ページパディング</td><td>32px 24px</td><td>py-8 px-6（全ページ共通）</td></tr>
+          <tr><td>カードパディング</td><td>32px</td><td>p-8（通常カード）</td></tr>
+          <tr><td>カード間ギャップ</td><td>24px</td><td>gap-6（2カラムグリッド）</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       2. Button
+       ============================================================ -->
+  <section class="section" id="button">
+    <div class="section-label">Component</div>
+    <div class="section-title">Button</div>
+    <div class="section-desc">variant: primary / secondary / danger / ghost　　size: md / lg / sm</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas">
+        <button class="btn btn-primary">登録する</button>
+        <button class="btn btn-secondary">戻る</button>
+        <button class="btn btn-danger">削除する</button>
+        <button class="btn btn-ghost btn-sm">編集</button>
+        <button class="btn btn-primary btn-lg">保存する（lg）</button>
+        <button class="btn btn-primary" disabled>処理中...</button>
+      </div>
+      <div class="demo-code">&lt;Button&gt;登録する&lt;/Button&gt;
+&lt;Button variant="secondary"&gt;戻る&lt;/Button&gt;
+&lt;Button variant="danger"&gt;削除する&lt;/Button&gt;
+&lt;Button variant="ghost" size="sm"&gt;編集&lt;/Button&gt;  {/* テーブル内編集ボタン専用 */}
+&lt;Button size="lg"&gt;保存する&lt;/Button&gt;
+&lt;Button disabled&gt;処理中...&lt;/Button&gt;</div>
+    </div>
+
+    <p class="component-name" style="margin-top:20px;">variant 一覧</p>
+    <div class="demo-block">
+      <table class="token-table">
+        <thead><tr><th>variant</th><th>size</th><th>用途</th><th>スタイル</th></tr></thead>
+        <tbody>
+          <tr><td><code>primary</code></td><td>md</td><td>登録・更新など主要アクション</td><td>青背景・白テキスト</td></tr>
+          <tr><td><code>secondary</code></td><td>md</td><td>戻るボタン</td><td>白背景・グレーボーダー</td></tr>
+          <tr><td><code>danger</code></td><td>md</td><td>削除ボタン</td><td>赤背景・白テキスト</td></tr>
+          <tr><td><code>ghost</code></td><td>sm</td><td><strong>テーブル内の編集ボタン専用</strong></td><td>#F3F4F6背景・ボーダーなし</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="component-name" style="margin-top:20px;">画面別ボタン構成</p>
+    <div class="demo-block">
+      <div class="demo-canvas column">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <div>
+            <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:8px;">登録画面</div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-primary">登録する</button>
+              <button class="btn btn-secondary">戻る</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:8px;">編集画面</div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-primary">更新する</button>
+              <button class="btn btn-secondary">戻る</button>
+              <button class="btn btn-danger">削除する</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:8px;">詳細画面</div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-primary">編集する</button>
+              <button class="btn btn-secondary">戻る</button>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:8px;">テーブル内（一覧画面）</div>
+            <div style="display:flex;gap:12px;">
+              <button class="btn btn-ghost btn-sm">編集</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       3. Input / Textarea / Checkbox
+       ============================================================ -->
+  <section class="section" id="input">
+    <div class="section-label">Component</div>
+    <div class="section-title">Input / Textarea / Checkbox</div>
+    <div class="section-desc">フォーム要素。error・readOnly 状態をサポート。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas column" style="max-width:480px;">
+        <div class="form-field">
+          <div class="field-label">通常 Input</div>
+          <input class="input" type="text" placeholder="テキストを入力してください" />
+        </div>
+        <div class="form-field">
+          <div class="field-label">エラー状態</div>
+          <input class="input error" type="text" value="https://wrong-domain.jp/" />
+          <div class="input-error-msg">https://eplus.jp/ で始まるURLを入力してください</div>
+        </div>
+        <div class="form-field">
+          <div class="field-label">読取専用（マスタ自動入力）</div>
+          <input class="input readonly" type="text" value="ABCD" readonly />
+        </div>
+        <div class="form-field">
+          <div class="field-label">Textarea</div>
+          <textarea class="input" rows="3" placeholder="複数行テキストを入力..."></textarea>
+        </div>
+        <div class="form-field last">
+          <div class="field-label">Checkbox</div>
+          <label class="checkbox-label">
+            <input type="checkbox" checked />
+            <span>配券あり</span>
+          </label>
+        </div>
+      </div>
+      <div class="demo-code">&lt;Input name="title" value={v} onChange={handleChange} /&gt;
+&lt;Input name="url" value={v} onChange={handleChange} error={urlError} /&gt;
+&lt;Input name="code" value={v} readOnly width="w-28" /&gt;
+&lt;Textarea name="memo" value={v} onChange={handleChange} rows={3} /&gt;
+&lt;Checkbox name="isActive" checked={v} onChange={fn} label="配券あり" /&gt;</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       4. Card / FormField
+       ============================================================ -->
+  <section class="section" id="card">
+    <div class="section-label">Component</div>
+    <div class="section-title">Card / FormField</div>
+    <div class="section-desc">フォームのまとまりをカードで区切る。FormField で label + hint を統一。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas white" style="padding:0;">
+        <div style="padding:32px;max-width:560px;width:100%;">
+          <div class="card-section-title">依頼情報</div>
+          <div class="form-field">
+            <div class="field-label">依頼メールタイトル</div>
+            <input class="input" type="text" placeholder="依頼メールタイトル" />
+          </div>
+          <div class="form-field">
+            <div class="field-label">
+              取引先コード
+              <span class="badge-label badge-label-success">✓ マスタから自動入力</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <input class="input readonly" type="text" value="ABCD" readonly style="width:120px;" />
+              <input class="input readonly" type="text" value="○○株式会社" readonly />
+            </div>
+          </div>
+          <div class="form-field">
+            <div class="field-label">
+              一般発売日
+              <span class="field-hint">［９］一般発売 &gt;《一般発売日》</span>
+            </div>
+            <div style="display:flex;gap:12px;">
+              <input class="input" type="text" placeholder="2024/06/01" style="width:240px;" />
+              <input class="input" type="text" placeholder="10:00" style="width:120px;" />
+            </div>
+          </div>
+          <div class="form-field last">
+            <div class="field-label">作業メモ <span class="field-required">必須</span></div>
+            <textarea class="input" rows="3" placeholder="作業メモを入力..."></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="demo-code">&lt;Card&gt;
+  &lt;SectionTitle&gt;依頼情報&lt;/SectionTitle&gt;
+  &lt;FormField label="依頼メールタイトル"&gt;
+    &lt;Input name="requestNumber" ... /&gt;
+  &lt;/FormField&gt;
+  &lt;FormField label={&lt;&gt;取引先コード &lt;BadgeLabel color="success"&gt;✓ マスタから自動入力&lt;/BadgeLabel&gt;&lt;/&gt;}&gt;
+    &lt;Input name="clientCode" readOnly width="w-28" /&gt;
+  &lt;/FormField&gt;
+  &lt;FormField label="一般発売日" hint="［９］一般発売 &gt;《一般発売日》"&gt;
+    &lt;div className="flex gap-3"&gt;
+      &lt;Input name="date" width="w-60" /&gt;
+      &lt;Input name="time" width="w-28" /&gt;
+    &lt;/div&gt;
+  &lt;/FormField&gt;
+  &lt;FormField label="作業メモ" required last&gt;
+    &lt;Textarea name="workMemo" rows={3} /&gt;
+  &lt;/FormField&gt;
+&lt;/Card&gt;</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       5. PageHeader
+       ============================================================ -->
+  <section class="section" id="pageheader">
+    <div class="section-label">Component</div>
+    <div class="section-title">PageHeader</div>
+    <div class="section-desc">各ページ上部のタイトル・サブテキスト・アクションボタン群。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas white column" style="gap:0;padding:0;">
+        <!-- 一覧 -->
+        <div style="padding:24px 32px;border-bottom:1px solid var(--color-gray-200);">
+          <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:12px;">一覧画面</div>
+          <div class="page-header" style="margin-bottom:0;">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 一覧</div>
+              <div class="page-subtitle">登録済みの作業設計を確認・編集できます</div>
+            </div>
+          </div>
+        </div>
+        <!-- 登録 -->
+        <div style="padding:24px 32px;border-bottom:1px solid var(--color-gray-200);">
+          <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:12px;">登録画面</div>
+          <div class="page-header" style="margin-bottom:0;">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 登録</div>
+              <div class="page-subtitle">依頼メールから公演登録に必要な情報を入力してください</div>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn btn-primary">登録する</button>
+              <button class="btn btn-secondary">戻る</button>
+            </div>
+          </div>
+        </div>
+        <!-- 編集 -->
+        <div style="padding:24px 32px;border-bottom:1px solid var(--color-gray-200);">
+          <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:12px;">編集画面</div>
+          <div class="page-header" style="margin-bottom:0;">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 編集</div>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn btn-primary">更新する</button>
+              <button class="btn btn-secondary">戻る</button>
+              <button class="btn btn-danger">削除する</button>
+            </div>
+          </div>
+        </div>
+        <!-- 詳細 -->
+        <div style="padding:24px 32px;">
+          <div style="font-size:11px;color:var(--color-gray-400);margin-bottom:12px;">詳細画面</div>
+          <div class="page-header" style="margin-bottom:0;">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 詳細</div>
+              <div class="page-subtitle">登録内容の確認とコピーができます</div>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn btn-primary">編集する</button>
+              <button class="btn btn-secondary">戻る</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       6. DataTable / Pagination
+       ============================================================ -->
+  <section class="section" id="table">
+    <div class="section-label">Component</div>
+    <div class="section-title">DataTable / Pagination</div>
+    <div class="section-desc">一覧画面のテーブル。列定義とrenderCellを渡すだけで描画。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas column" style="padding:0;background:#F9FAFB;">
+        <!-- 検索バー -->
+        <div style="padding:24px;display:flex;justify-content:space-between;align-items:center;gap:16px;">
+          <button class="btn btn-primary">追加</button>
+          <input class="input" type="text" placeholder="依頼メールタイトル・作業者で検索..." style="width:300px;" />
+        </div>
+        <!-- テーブル -->
+        <div class="table-card" style="margin:0 24px;">
+          <table class="data-table">
+            <colgroup>
+              <col /><col style="width:128px;" /><col style="width:160px;" /><col style="width:96px;" />
+            </colgroup>
+            <thead>
+              <tr>
+                <th>依頼メールタイトル</th>
+                <th>作業者</th>
+                <th>登録日時</th>
+                <th class="right"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><button class="table-link">【○○楽団】2024年春ツアー チケット登録依頼</button></td>
+                <td>山田 太郎</td>
+                <td>2024/05/15 14:32</td>
+                <td class="right"><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><button class="table-link">△△フェスティバル 先行受付設定のご依頼</button></td>
+                <td>佐藤 花子</td>
+                <td>2024/05/14 09:18</td>
+                <td class="right"><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+              <tr>
+                <td><button class="table-link">◇◇コンサート 一般発売 追加公演分</button></td>
+                <td>鈴木 次郎</td>
+                <td>2024/05/13 16:55</td>
+                <td class="right"><button class="btn btn-ghost btn-sm">編集</button></td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- ページネーション -->
+          <div class="pagination">
+            <span class="pagination-info">128 件中 1〜40 件を表示</span>
+            <div class="pagination-nav">
+              <button class="page-btn" disabled>← 前へ</button>
+              <span>1 / 4</span>
+              <button class="page-btn">次へ →</button>
+            </div>
+          </div>
+        </div>
+        <div style="height:24px;"></div>
+      </div>
+      <div class="demo-code">&lt;DataTable
+  columns={[
+    { key: 'requestNumber', label: '依頼メールタイトル' },
+    { key: 'worker',        label: '作業者', width: 'w-32' },
+    { key: 'createdAt',     label: '登録日時', width: 'w-40' },
+    { key: '_actions',      label: '', width: 'w-24', align: 'right' },  // align:'right' 必須
+  ]}
+  rows={pagedWorks}
+  renderCell={(row, key) =&gt; {
+    if (key === '_actions') return (
+      // 編集ボタンは必ず variant="ghost" size="sm"
+      &lt;Button variant="ghost" size="sm" onClick={() =&gt; navigate(`/edit/${row.id}`)}&gt;編集&lt;/Button&gt;
+    );
+    return row[key] ?? '-';
+  }}
+/&gt;
+&lt;Pagination total={128} pageSize={40} currentPage={1} onPageChange={fn} /&gt;</div>
+    </div>
+
+    <p class="component-name" style="margin-top:32px;">ROWSPAN TABLE — グループ化・チェックボックス一括削除</p>
+    <div class="demo-block">
+      <div class="demo-canvas column" style="padding:0;background:var(--color-bg);">
+        <div style="padding:24px 24px 16px;display:flex;align-items:flex-start;justify-content:space-between;">
+          <div>
+            <div style="font-size:22px;font-weight:700;color:var(--color-gray-900);">実績一覧</div>
+            <div style="font-size:13px;color:var(--color-gray-500);margin-top:4px;">CSVでアップロードした作業実績の一覧です</div>
+          </div>
+          <button style="background:var(--color-danger);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">選択した2件を削除</button>
+        </div>
+        <div style="margin:0 24px 24px;background:#fff;border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:var(--color-gray-100);border-bottom:1px solid var(--color-gray-200);">
+                <th style="padding:10px 12px;text-align:center;width:40px;"><input type="checkbox" id="rs-cb-all" style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">日付</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">From</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);min-width:200px;">件名</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">担当者</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">完了日時</th>
+                <th style="padding:10px 12px;text-align:right;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">作業分数</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- グループ1：チェック済み（bg-primary-light） -->
+              <tr style="background:var(--color-primary-light);">
+                <td rowspan="2" style="padding:10px 12px;text-align:center;vertical-align:top;border-bottom:1px solid var(--color-gray-200);"><input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></td>
+                <td rowspan="2" style="padding:10px 12px;vertical-align:top;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">2026/02/03</td>
+                <td rowspan="2" style="padding:10px 12px;vertical-align:top;color:var(--color-gray-600);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">竹中智香</td>
+                <td rowspan="2" style="padding:10px 12px;vertical-align:top;color:var(--color-gray-800);border-bottom:1px solid var(--color-gray-200);">[smflow01:6261] 新規公演ご登録のお願い</td>
+                <td style="padding:10px 12px;color:var(--color-gray-900);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">橋本</td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">02/10 16:21</td>
+                <td style="padding:10px 12px;text-align:right;color:var(--color-gray-600);border-bottom:1px solid var(--color-gray-200);">75分</td>
+              </tr>
+              <tr style="background:var(--color-primary-light);">
+                <td style="padding:10px 12px;color:var(--color-gray-900);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">富田</td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">02/10 17:05</td>
+                <td style="padding:10px 12px;text-align:right;color:var(--color-gray-600);border-bottom:1px solid var(--color-gray-200);">32分</td>
+              </tr>
+              <!-- グループ2：未選択 -->
+              <tr style="background:#fff;">
+                <td style="padding:10px 12px;text-align:center;vertical-align:top;border-bottom:1px solid var(--color-gray-200);"><input type="checkbox" style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">2026/02/02</td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">吉村玲未花</td>
+                <td style="padding:10px 12px;color:var(--color-gray-800);border-bottom:1px solid var(--color-gray-200);">[smflow01:6248] ケツメイシ新規公演</td>
+                <td style="padding:10px 12px;color:var(--color-gray-900);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">山内</td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">02/02 17:58</td>
+                <td style="padding:10px 12px;text-align:right;color:var(--color-gray-600);border-bottom:1px solid var(--color-gray-200);">123分</td>
+              </tr>
+              <!-- グループ3：未選択・奇数行 -->
+              <tr style="background:var(--color-gray-50);">
+                <td style="padding:10px 12px;text-align:center;vertical-align:top;border-bottom:1px solid var(--color-gray-200);"><input type="checkbox" style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">2026/02/02</td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">宇田川みず紀</td>
+                <td style="padding:10px 12px;color:var(--color-gray-800);border-bottom:1px solid var(--color-gray-200);">[smflow01:6232] SEAdLINNNG委託</td>
+                <td style="padding:10px 12px;color:var(--color-gray-900);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">伊藤</td>
+                <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">02/05 10:49</td>
+                <td style="padding:10px 12px;text-align:right;color:var(--color-gray-600);border-bottom:1px solid var(--color-gray-200);">34分</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="demo-code">// groupRecords() でフラットなレコードをグループ化
+// groups.map() でrowspan表示
+// selected.has(key) で選択状態を管理（bg-primary-light でハイライト）
+// indeterminate チェックボックスで全選択の中間状態を表現
+// ※ DataTable コンポーネントは rowspan 非対応のため手書き &lt;table&gt; を使用</div>
+    </div>
+    <script>document.getElementById('rs-cb-all').indeterminate = true;</script>
+  </section>
+
+  <!-- ============================================================
+       7. Modal
+       ============================================================ -->
+  <section class="section" id="modal">
+    <div class="section-label">Component</div>
+    <div class="section-title">Modal</div>
+    <div class="section-desc">削除確認・選択ダイアログ。オーバーレイクリックで閉じる。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas">
+        <button class="btn btn-danger" onclick="document.getElementById('modal-overlay').classList.add('open')">
+          削除確認モーダルを開く
+        </button>
+      </div>
+      <div class="demo-code">&lt;Modal
+  open={showDeleteDialog}
+  onClose={() =&gt; setShowDeleteDialog(false)}
+  title="削除の確認"
+  footer={
+    &lt;&gt;
+      &lt;Button variant="secondary" onClick={onClose}&gt;キャンセル&lt;/Button&gt;
+      &lt;Button variant="danger"    onClick={handleDelete}&gt;削除する&lt;/Button&gt;
+    &lt;/&gt;
+  }
+&gt;
+  &lt;p&gt;このデータを削除しますか？この操作は取り消せません。&lt;/p&gt;
+&lt;/Modal&gt;</div>
+    </div>
+
+
+    <p class="component-name" style="margin-top:32px;">ERROR MODAL — エラー表示</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:rgba(0,0,0,0.3);min-height:260px;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:32px;width:400px;box-shadow:var(--shadow-modal);">
+          <div style="font-size:17px;font-weight:700;color:var(--color-gray-900);margin-bottom:8px;">処理結果</div>
+          <p style="font-size:13px;color:var(--color-gray-600);margin-bottom:12px;line-height:1.6;">以下のエラーを修正してから再度お試しください。</p>
+          <div style="background:var(--color-danger-light);border:1px solid var(--color-danger);border-radius:8px;padding:12px;">
+            <p style="font-size:13px;color:var(--color-danger);margin-bottom:4px;">• 3行目: 完了日時が空です</p>
+            <p style="font-size:13px;color:var(--color-danger);">• 5行目: 日付のフォーマットが不正です</p>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+            <button class="btn btn-secondary">閉じる</button>
+          </div>
+        </div>
+      </div>
+      <div class="demo-code">&lt;Modal title="処理結果" footer={&lt;Button variant="secondary"&gt;閉じる&lt;/Button&gt;}&gt;
+  &lt;div className="bg-danger-light border border-danger rounded-input p-4"&gt;
+    {errors.map((e, i) =&gt; &lt;p key={i} className="text-sm text-danger"&gt;• {e}&lt;/p&gt;)}
+  &lt;/div&gt;
+&lt;/Modal&gt;</div>
+    </div>
+
+    <p class="component-name" style="margin-top:24px;">CONFIRM MODAL — 件数確認（インポートなど）</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:rgba(0,0,0,0.3);min-height:260px;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:32px;width:400px;box-shadow:var(--shadow-modal);">
+          <div style="font-size:17px;font-weight:700;color:var(--color-gray-900);margin-bottom:8px;">処理の確認</div>
+          <p style="font-size:13px;color:var(--color-gray-600);margin-bottom:20px;line-height:1.6;">以下の内容で処理します。よろしいですか？</p>
+          <div style="background:var(--color-primary-light);border:1px solid var(--color-primary);border-radius:8px;padding:16px;text-align:center;">
+            <p style="font-size:11px;font-weight:600;color:var(--color-primary);margin-bottom:4px;">処理件数</p>
+            <p style="font-size:28px;font-weight:700;color:var(--color-primary);">487<span style="font-size:14px;margin-left:4px;">件</span></p>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:20px;">
+            <button class="btn btn-secondary">キャンセル</button>
+            <button class="btn btn-primary">実行する</button>
+          </div>
+        </div>
+      </div>
+      <div class="demo-code">&lt;div className="bg-primary-light border border-primary rounded-input px-5 py-4 text-center"&gt;
+  &lt;p className="text-xs text-primary font-semibold mb-1"&gt;処理件数&lt;/p&gt;
+  &lt;p className="text-3xl font-bold text-primary"&gt;
+    {count}&lt;span className="text-base ml-1"&gt;件&lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;</div>
+    </div>
+
+    <p class="component-name" style="margin-top:24px;">RESULT MODAL — 完了通知</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:rgba(0,0,0,0.3);min-height:260px;align-items:center;justify-content:center;">
+        <div style="background:#fff;border-radius:12px;padding:32px;width:400px;box-shadow:var(--shadow-modal);">
+          <div style="font-size:17px;font-weight:700;color:var(--color-gray-900);margin-bottom:8px;">処理完了</div>
+          <p style="font-size:13px;color:var(--color-gray-600);margin-bottom:20px;line-height:1.6;">処理が完了しました。</p>
+          <div style="background:var(--color-success-light);border:1px solid var(--color-success);border-radius:8px;padding:16px;text-align:center;">
+            <p style="font-size:11px;font-weight:600;color:var(--color-success);margin-bottom:4px;">追加したレコード</p>
+            <p style="font-size:28px;font-weight:700;color:var(--color-success);">487<span style="font-size:14px;margin-left:4px;">件</span></p>
+          </div>
+          <div style="display:flex;justify-content:flex-end;margin-top:20px;">
+            <button class="btn btn-primary">閉じる</button>
+          </div>
+        </div>
+      </div>
+      <div class="demo-code">&lt;div className="bg-success-light border border-success rounded-input px-5 py-4 text-center"&gt;
+  &lt;p className="text-xs text-success font-semibold mb-1"&gt;追加したレコード&lt;/p&gt;
+  &lt;p className="text-3xl font-bold text-success"&gt;
+    {count}&lt;span className="text-base ml-1"&gt;件&lt;/span&gt;
+  &lt;/p&gt;
+&lt;/div&gt;</div>
+    </div>
+    <!-- モーダル本体（ショーケース用） -->
+    <div class="modal-overlay" id="modal-overlay" onclick="if(event.target===this)this.classList.remove('open')">
+      <div class="modal-box">
+        <div class="modal-title">削除の確認</div>
+        <div class="modal-body">このデータを削除しますか？この操作は取り消せません。</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="document.getElementById('modal-overlay').classList.remove('open')">キャンセル</button>
+          <button class="btn btn-danger"    onclick="document.getElementById('modal-overlay').classList.remove('open')">削除する</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       8. Badge
+       ============================================================ -->
+  <section class="section" id="badge">
+    <div class="section-label">Component</div>
+    <div class="section-title">Badge / BadgeLabel</div>
+    <div class="section-desc">ステータス・フラグ表示。Badge は詳細画面、BadgeLabel はラベル内インラインで使用。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas">
+        <span class="badge badge-danger">配券あり</span>
+        <span class="badge badge-danger">後発券</span>
+        <span class="badge badge-primary">先着先行</span>
+        <span class="badge badge-success">マスタ登録済</span>
+        <span class="badge badge-warning">要確認</span>
+        <span class="badge badge-gray">未設定</span>
+      </div>
+      <div class="demo-code">&lt;Badge color="danger"&gt;配券あり&lt;/Badge&gt;
+&lt;Badge color="danger"&gt;後発券&lt;/Badge&gt;
+&lt;Badge color="primary"&gt;先着先行&lt;/Badge&gt;
+&lt;Badge color="success"&gt;マスタ登録済&lt;/Badge&gt;</div>
+    </div>
+
+    <div class="demo-block" style="margin-top:16px;">
+      <div class="demo-canvas column">
+        <div class="field-label">
+          取引先コード
+          <span class="badge-label badge-label-success">✓ マスタから自動入力</span>
+        </div>
+        <div class="field-label">
+          専用URL
+          <span class="badge-label badge-label-primary">外部リンク</span>
+        </div>
+      </div>
+      <div class="demo-code">&lt;FormField label={&lt;&gt;取引先コード &lt;BadgeLabel color="success"&gt;✓ マスタから自動入力&lt;/BadgeLabel&gt;&lt;/&gt;}&gt;
+  ...
+&lt;/FormField&gt;</div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       9. 画面パターン
+       ============================================================ -->
+  <section class="section" id="pages">
+    <div class="section-label">Page Patterns</div>
+    <div class="section-title">画面パターン</div>
+    <div class="section-desc">4パターンすべて AdminPage.template.jsx に収録。COLLECTION 定数を変えるだけで使える。</div>
+    <hr class="section-divider">
+
+    <!-- 一覧画面 -->
+    <p class="component-name">PATTERN 1 — 一覧画面</p>
+    <div class="demo-block" style="margin-bottom:24px;">
+      <div class="demo-canvas column" style="background:var(--color-bg);padding:0;">
+        <div style="padding:24px 32px 0;">
+          <div class="page-header">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 一覧</div>
+              <div class="page-subtitle">登録済みの作業設計を確認・編集できます</div>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px;">
+            <button class="btn btn-primary">追加</button>
+            <input class="input" type="text" placeholder="検索..." style="width:260px;" />
+          </div>
+        </div>
+        <div style="padding:0 32px 32px;">
+          <div class="table-card">
+            <table class="data-table">
+              <thead><tr><th>依頼メールタイトル</th><th style="width:96px;text-align:right;"></th></tr></thead>
+              <tbody>
+                <tr><td><button class="table-link">【○○楽団】2024年春ツアー</button></td><td class="right"><button class="btn btn-ghost btn-sm">編集</button></td></tr>
+                <tr><td><button class="table-link">△△フェスティバル 先行受付</button></td><td class="right"><button class="btn btn-ghost btn-sm">編集</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2カラムフォーム（登録・編集） -->
+    <p class="component-name">PATTERN 2 / 3 — 登録・編集画面（2カラムレイアウト）</p>
+    <div class="demo-block" style="margin-bottom:24px;">
+      <div class="demo-canvas column" style="background:var(--color-bg);padding:0;">
+        <div style="padding:24px 32px 0;">
+          <div class="page-header">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 登録</div>
+              <div class="page-subtitle">依頼メールから情報を入力してください</div>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn btn-primary">登録する</button>
+              <button class="btn btn-secondary">戻る</button>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 32px 32px;">
+          <div class="demo-grid-2">
+          <!-- 左カラム -->
+          <div class="card">
+            <div class="card-body">
+              <div class="card-section-title">依頼情報</div>
+              <div class="form-field">
+                <div class="field-label">依頼メールタイトル</div>
+                <input class="input" type="text" placeholder="メールタイトル" />
+              </div>
+              <div class="form-field">
+                <div class="field-label">取引先メールアドレス</div>
+                <input class="input" type="text" placeholder="example@client.jp" />
+              </div>
+              <div class="form-field last">
+                <div class="field-label">作業メモ</div>
+                <textarea class="input" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <!-- 右カラム -->
+          <div style="display:flex;flex-direction:column;gap:24px;">
+            <div class="card">
+              <div class="card-body">
+                <div class="card-section-title">日程</div>
+                <div class="form-field">
+                  <div class="field-label">一般発売日 <span class="field-hint">［９］一般発売</span></div>
+                  <div style="display:flex;gap:8px;">
+                    <input class="input" type="text" placeholder="2024/06/01" style="width:180px;" />
+                    <input class="input" type="text" placeholder="10:00" style="width:90px;" />
+                  </div>
+                </div>
+                <div class="form-field last">
+                  <div class="field-label">公演日</div>
+                  <input class="input" type="text" placeholder="2024/07/15" style="width:180px;" />
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-body">
+                <div class="card-section-title">公演情報</div>
+                <div class="form-field">
+                  <div class="field-label">会場名</div>
+                  <input class="input" type="text" placeholder="○○ホール" />
+                </div>
+                <div class="form-field last">
+                  <div class="field-label">配券</div>
+                  <label class="checkbox-label"><input type="checkbox" /><span>あり</span></label>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div><!-- demo-grid-2 end -->
+        </div><!-- padding wrapper end -->
+      </div>
+    </div>
+    <p class="component-name">PATTERN 4 — 詳細画面（クリックでコピー）</p>
+    <div class="demo-block">
+      <div class="demo-canvas column" style="background:var(--color-bg);padding:0;">
+        <div style="padding:24px 32px 0;">
+          <div class="page-header">
+            <div class="page-header-left">
+              <div class="page-title">作業設計 - 詳細</div>
+              <div class="page-subtitle">登録内容の確認とコピーができます</div>
+            </div>
+            <div class="page-header-actions">
+              <button class="btn btn-primary">編集する</button>
+              <button class="btn btn-secondary">戻る</button>
+            </div>
+          </div>
+        </div>
+        <div style="padding:0 32px 32px;">
+          <div class="demo-grid-2">
+            <!-- 左 -->
+            <div class="card" style="padding:0;">
+              <div style="font-size:18px;font-weight:600;color:var(--color-gray-900);padding:20px 24px 0;margin-bottom:4px;">依頼情報</div>
+              <div class="static-row"><div class="detail-label">依頼メールタイトル</div><div class="detail-value">【○○楽団】2024年春ツアー チケット登録依頼</div></div>
+              <div class="detail-row"><div class="detail-label">取引先コード</div><div class="detail-value">ABCD</div><div class="detail-copy-hint">📋 コピー</div></div>
+              <div class="detail-row"><div class="detail-label">会場名</div><div class="detail-value">○○ホール</div><div class="detail-copy-hint">📋 コピー</div></div>
+              <div class="static-row" style="border-bottom:none;">
+                <div class="detail-label">配券</div>
+                <div class="detail-value"><span class="badge badge-danger">あり</span></div>
+              </div>
+            </div>
+            <!-- 右 -->
+            <div style="display:flex;flex-direction:column;gap:24px;">
+              <div class="card" style="padding:0;">
+                <div style="font-size:18px;font-weight:600;color:var(--color-gray-900);padding:20px 24px 0;margin-bottom:4px;">日程</div>
+                <div class="detail-row"><div class="detail-label">一般発売日時</div><div class="detail-value">2024/06/01　10:00</div><div class="detail-copy-hint">📋 コピー</div></div>
+                <div class="detail-row" style="border-bottom:none;"><div class="detail-label">発券開始日時</div><div style="display:flex;align-items:center;gap:12px;"><div class="detail-value">2024/07/01　12:00</div><span class="badge badge-danger">後発券</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       ログイン画面
+       ============================================================ -->
+  <section class="section">
+    <div class="section-label">Page Patterns</div>
+    <div class="section-title">ログイン画面</div>
+    <div class="section-desc">Google OAuth。許可メールアドレスリストで制御。</div>
+    <hr class="section-divider">
+
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:var(--color-gray-50);justify-content:center;padding:48px 32px;">
+        <div class="login-card" style="width:100%;">
+          <div class="card">
+            <div class="card-body" style="padding:48px 32px;">
+              <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:32px;">
+                <div class="app-logo-icon" style="width:48px;height:48px;font-size:22px;">W</div>
+                <div style="font-size:24px;font-weight:700;">Work Design Tool</div>
+              </div>
+              <div style="font-size:20px;font-weight:600;text-align:center;margin-bottom:8px;">ログイン</div>
+              <div style="font-size:14px;color:var(--color-gray-500);text-align:center;margin-bottom:32px;">Googleアカウントでログインしてください</div>
+              <button class="google-btn">
+                <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z"/><path fill="#FBBC05" d="M3.964 10.707c-.18-.54-.282-1.117-.282-1.707s.102-1.167.282-1.707V4.961H.957C.347 6.175 0 7.55 0 9s.348 2.825.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.961L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z"/></svg>
+                Googleでログイン
+              </button>
+              <div style="font-size:12px;color:var(--color-gray-400);text-align:center;margin-top:24px;">※ 許可されたアカウントのみログイン可能です</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       DropdownNavMenu
+       ============================================================ -->
+  <section class="section" id="dropdown">
+    <div class="section-label">Implementation Pattern</div>
+    <div class="section-title">DropdownNavMenu（App.jsx 固有）</div>
+    <div class="section-desc">App.jsx 固有の実装パターン。サブメニューを持つナビゲーション。ボタンとドロップダウンの間に透明ブリッジを配置して onMouseLeave の誤発火を防いでいる。</div>
+    <hr class="section-divider">
+
+    <p class="component-name">HEADER NAVIGATION</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:#fff;justify-content:flex-start;padding:0;border:1px solid var(--color-gray-200);">
+        <div style="height:56px;border-bottom:1px solid var(--color-gray-200);display:flex;align-items:center;padding:0 24px;gap:32px;width:100%;">
+          <div style="font-size:15px;font-weight:700;color:var(--color-gray-900);display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;background:var(--color-primary);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;">W</div>
+            Work Design Tool
+          </div>
+          <nav style="display:flex;gap:4px;align-items:center;">
+            <a href="#" onclick="return false" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--color-gray-500);" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">作業設計</a>
+            <a href="#" onclick="return false" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--color-gray-500);" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">テキスト変換</a>
+
+            <!-- マスタ ドロップダウン -->
+            <div class="dd-wrap" style="position:relative;" onmouseleave="this.querySelector('.dd-menu').style.display='none'">
+              <button onclick="var m=this.nextElementSibling;m.style.display=m.style.display==='block'?'none':'block'" onmouseenter="this.nextElementSibling.style.display='block'" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="">マスタ <span style="font-size:9px;opacity:.7;">▼</span></button>
+              <!-- 透明ブリッジ -->
+              <div style="position:absolute;top:100%;left:0;width:100%;height:4px;"></div>
+              <div class="dd-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--color-gray-200);border-radius:8px;min-width:160px;box-shadow:var(--shadow-dropdown);overflow:hidden;z-index:100;">
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);transition:background .1s;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">取引先アドレス</a>
+              </div>
+            </div>
+
+            <!-- 実績管理 ドロップダウン（アクティブ状態） -->
+            <div class="dd-wrap" style="position:relative;" onmouseleave="this.querySelector('.dd-menu2').style.display='none'">
+              <button onclick="var m=this.nextElementSibling.nextElementSibling;m.style.display=m.style.display==='block'?'none':'block'" onmouseenter="this.nextElementSibling.nextElementSibling.style.display='block'" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-primary-light);cursor:pointer;color:var(--color-primary);display:flex;align-items:center;gap:3px;font-family:inherit;">実績管理 <span style="font-size:9px;opacity:.7;">▼</span></button>
+              <div style="position:absolute;top:100%;left:0;width:100%;height:4px;"></div>
+              <div class="dd-menu2" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--color-gray-200);border-radius:8px;min-width:160px;box-shadow:var(--shadow-dropdown);overflow:hidden;z-index:100;">
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;background:var(--color-primary-light);color:var(--color-primary);">実績一覧</a>
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">CSVアップロード</a>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <p class="component-name" style="margin-top:24px;">STATES</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="gap:12px;flex-wrap:wrap;justify-content:flex-start;">
+        <div style="position:relative;display:inline-block;">
+          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;">通常 <span style="font-size:9px;opacity:.7;">▼</span></button>
+        </div>
+        <div style="position:relative;display:inline-block;">
+          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-gray-100);cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;">ホバー <span style="font-size:9px;opacity:.7;">▼</span></button>
+        </div>
+        <div style="position:relative;display:inline-block;">
+          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-primary-light);cursor:pointer;color:var(--color-primary);display:flex;align-items:center;gap:3px;font-family:inherit;">アクティブ <span style="font-size:9px;opacity:.7;">▼</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Rowspan テーブル
+       ============================================================ -->
+
+  <!-- ============================================================
+       Modal パターン
+       ============================================================ -->
+
+</main>
+
+</body>
+</html>
