@@ -3,8 +3,8 @@
 React + Vite + Tailwind CSS v4 + Firebase 構成の管理サイト用デザインシステム。
 このドキュメントを Claude に添付することで、毎回デザイン指示をしなくても一貫した UI が作れる。
 
-**バージョン**: v1.3  
-**最終更新**: 2026-03-28
+**バージョン**: v1.4  
+**最終更新**: 2026-03-30
 
 ---
 
@@ -218,6 +218,80 @@ import { Button } from '../design-system';
 **テーブル内編集ボタン（必ずこのスタイルを使う）:**
 ```jsx
 <Button variant="ghost" size="sm" onClick={() => navigate(`/edit/${row.id}`)}>編集</Button>
+```
+
+### アイコンボタン（フィールド追加・削除）
+
+ページ全体のアクション（登録・戻るなど）はテキストボタン（`Button` コンポーネント）を使うが、**カード内のフィールド追加・削除など省スペースが求められる操作**には CSS 描画の円形アイコンボタンを使う。外部ライブラリ不要・SVG インライン描画。
+
+| 用途 | サイズ | 背景色 | アイコン |
+|---|---|---|---|
+| 追加（Add） | 40×40px | `#2563EB`（primary-hover） | 白い `+`（18px SVG） |
+| 削除（Delete） | 24×24px | `#111827`（gray-900） | 白い `×`（10px SVG） |
+
+**追加ボタン:**
+```jsx
+<button
+  type="button"
+  onClick={handleAdd}
+  style={{
+    width: '40px', height: '40px', borderRadius: '50%',
+    backgroundColor: '#2563eb', border: 'none', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0, transition: 'background-color 0.15s',
+  }}
+  onMouseEnter={e => e.currentTarget.style.backgroundColor = '#1d4ed8'}
+  onMouseLeave={e => e.currentTarget.style.backgroundColor = '#2563eb'}
+>
+  <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
+    <line x1="7" y1="2" x2="7" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    <line x1="2" y1="7" x2="12" y2="7" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+</button>
+```
+
+**削除ボタン（`disabled` 時はグレーアウト）:**
+```jsx
+<button
+  type="button"
+  onClick={() => items.length > 1 && handleDelete(index)}
+  disabled={items.length === 1}
+  style={{
+    width: '24px', height: '24px', borderRadius: '50%',
+    backgroundColor: items.length === 1 ? '#d1d5db' : '#111827',
+    border: 'none',
+    cursor: items.length === 1 ? 'not-allowed' : 'pointer',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    flexShrink: 0, transition: 'background-color 0.15s',
+    marginBottom: '10px',  /* items-end グリッド内で入力フィールドと縦位置を合わせる */
+  }}
+  onMouseEnter={e => { if (items.length > 1) e.currentTarget.style.backgroundColor = '#374151'; }}
+  onMouseLeave={e => { if (items.length > 1) e.currentTarget.style.backgroundColor = '#111827'; }}
+>
+  <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+    <line x1="2" y1="2" x2="10" y2="10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+    <line x1="10" y1="2" x2="2" y2="10" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+  </svg>
+</button>
+```
+
+**グリッドレイアウトとの組み合わせ（繰り返しフィールド行）:**
+```jsx
+{/* カードヘッダー：セクションタイトルと追加ボタンを横並び */}
+<div className="flex justify-between items-center">
+  <SectionTitle>セクション名</SectionTitle>
+  {/* 追加ボタン（40px） */}
+</div>
+
+{/* 繰り返し行：items-end で入力底辺揃え、削除ボタンは marginBottom で微調整 */}
+<div className="grid gap-3 items-end p-4 bg-gray-50 rounded-input border border-gray-200"
+  style={{ gridTemplateColumns: '... auto' }}>
+  <div>
+    <div className="text-sm font-semibold text-gray-700 mb-2">ラベル</div>
+    <Input ... />
+  </div>
+  {/* 削除ボタン（24px・marginBottom: 10px） */}
+</div>
 ```
 
 ---
@@ -696,6 +770,7 @@ return (
 
 | バージョン | 日付 | 内容 |
 |---|---|---|
+| v1.4 | 2026-03-30 | Button セクションにアイコンボタン（追加・削除）仕様を追加。ページ全体はテキストボタン、カード内フィールド操作は円形 SVG アイコンボタンに使い分けるルールを明記 |
 | v1.3 | 2026-03-28 | 設計方針セクション追加 / コンポーネント内パターン整理（DataTableにrowspan・ModalにErrorモーダル・確認モーダルを統合）/ よくある実装パターンをコンポーネント横断のものに限定 |
 | v1.2 | 2026-03-28 | DropdownNavMenu パターン追加 / Card内テーブルパターン更新 / loading + ref の注意事項追加 / rowspanテーブル・チェックボックス一括削除パターン追加 |
 | v1.1 | 2026-03-26 | Button に `ghost` variant・`sm` size 追加 / `leading-none` 削除によるボタン高さ修正 / Table アクション列の padding 修正 |

@@ -499,7 +499,7 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
   <section class="section" id="button">
     <div class="section-label">Component</div>
     <div class="section-title">Button</div>
-    <div class="section-desc">variant: primary / secondary / danger / ghost　　size: md / lg / sm</div>
+    <div class="section-desc">variant: primary / secondary / danger / ghost　　size: md / lg / sm　　+ アイコンボタン（追加・削除）</div>
     <hr class="section-divider">
 
     <div class="demo-block">
@@ -530,6 +530,123 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
           <tr><td><code>ghost</code></td><td>sm</td><td><strong>テーブル内の編集ボタン専用</strong></td><td>#F3F4F6背景・ボーダーなし</td></tr>
         </tbody>
       </table>
+    </div>
+
+    <p class="component-name" style="margin-top:20px;">アイコンボタン（フィールド追加・削除）</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="gap:32px;align-items:flex-start;">
+
+        <!-- 追加ボタン -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="font-size:11px;color:var(--color-gray-400);">追加 / 40×40px</div>
+          <button
+            style="width:40px;height:40px;border-radius:50%;background:#2563eb;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;"
+            onmouseover="this.style.background='#1d4ed8'"
+            onmouseout="this.style.background='#2563eb'">
+            <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
+              <line x1="7" y1="2" x2="7" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <line x1="2" y1="7" x2="12" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 削除ボタン（有効） -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="font-size:11px;color:var(--color-gray-400);">削除 / 24×24px</div>
+          <button
+            style="width:24px;height:24px;border-radius:50%;background:#111827;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;"
+            onmouseover="this.style.background='#374151'"
+            onmouseout="this.style.background='#111827'">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <line x1="2" y1="2" x2="10" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <line x1="10" y1="2" x2="2" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 削除ボタン（disabled） -->
+        <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
+          <div style="font-size:11px;color:var(--color-gray-400);">削除 / disabled</div>
+          <button disabled
+            style="width:24px;height:24px;border-radius:50%;background:#d1d5db;border:none;cursor:not-allowed;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+              <line x1="2" y1="2" x2="10" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              <line x1="10" y1="2" x2="2" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 使用例：繰り返しフィールド行 -->
+        <div style="display:flex;flex-direction:column;gap:10px;margin-left:16px;">
+          <div style="font-size:11px;color:var(--color-gray-400);">使用例（繰り返しフィールド）</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:13px;font-weight:600;color:var(--color-gray-700);">席種料金</div>
+            <button
+              style="width:40px;height:40px;border-radius:50%;background:#2563eb;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s;"
+              onmouseover="this.style.background='#1d4ed8'"
+              onmouseout="this.style.background='#2563eb'">
+              <svg width="18" height="18" viewBox="0 0 14 14" fill="none">
+                <line x1="7" y1="2" x2="7" y2="12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <line x1="2" y1="7" x2="12" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <div style="display:grid;grid-template-columns:160px 80px 80px auto;gap:8px;align-items:end;padding:12px;background:var(--color-gray-50);border-radius:8px;border:1px solid var(--color-gray-200);">
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--color-gray-700);margin-bottom:6px;">席種</div>
+              <div style="height:36px;border:1px solid var(--color-gray-300);border-radius:8px;background:#fff;"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--color-gray-700);margin-bottom:6px;">席種料金</div>
+              <div style="height:36px;border:1px solid var(--color-gray-300);border-radius:8px;background:#fff;"></div>
+            </div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--color-gray-700);margin-bottom:6px;">当日料金</div>
+              <div style="height:36px;border:1px solid var(--color-gray-300);border-radius:8px;background:#fff;"></div>
+            </div>
+            <button
+              style="width:24px;height:24px;border-radius:50%;background:#111827;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-bottom:10px;transition:background .15s;"
+              onmouseover="this.style.background='#374151'"
+              onmouseout="this.style.background='#111827'">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                <line x1="2" y1="2" x2="10" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <line x1="10" y1="2" x2="2" y2="10" stroke="white" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+      </div>
+      <div class="demo-code">{/* 追加ボタン（40px） */}
+&lt;button type="button" onClick={handleAdd}
+  style={{ width:'40px', height:'40px', borderRadius:'50%', backgroundColor:'#2563eb',
+    border:'none', cursor:'pointer', display:'flex', alignItems:'center',
+    justifyContent:'center', flexShrink:0, transition:'background-color 0.15s' }}
+  onMouseEnter={e =&gt; e.currentTarget.style.backgroundColor='#1d4ed8'}
+  onMouseLeave={e =&gt; e.currentTarget.style.backgroundColor='#2563eb'}&gt;
+  &lt;svg width="18" height="18" viewBox="0 0 14 14" fill="none"&gt;
+    &lt;line x1="7" y1="2" x2="7" y2="12" stroke="white" strokeWidth="2" strokeLinecap="round"/&gt;
+    &lt;line x1="2" y1="7" x2="12" y2="7" stroke="white" strokeWidth="2" strokeLinecap="round"/&gt;
+  &lt;/svg&gt;
+&lt;/button&gt;
+
+{/* 削除ボタン（24px・disabled対応） */}
+&lt;button type="button"
+  onClick={() =&gt; items.length &gt; 1 &amp;&amp; handleDelete(index)}
+  disabled={items.length === 1}
+  style={{ width:'24px', height:'24px', borderRadius:'50%',
+    backgroundColor: items.length===1 ? '#d1d5db' : '#111827',
+    border:'none', cursor: items.length===1 ? 'not-allowed' : 'pointer',
+    display:'flex', alignItems:'center', justifyContent:'center',
+    flexShrink:0, transition:'background-color 0.15s',
+    marginBottom:'10px' /* items-end グリッドで入力と縦位置を合わせる */ }}
+  onMouseEnter={e =&gt; { if(items.length&gt;1) e.currentTarget.style.backgroundColor='#374151'; }}
+  onMouseLeave={e =&gt; { if(items.length&gt;1) e.currentTarget.style.backgroundColor='#111827'; }}&gt;
+  &lt;svg width="10" height="10" viewBox="0 0 12 12" fill="none"&gt;
+    &lt;line x1="2" y1="2" x2="10" y2="10" stroke="white" strokeWidth="2" strokeLinecap="round"/&gt;
+    &lt;line x1="10" y1="2" x2="2" y2="10" stroke="white" strokeWidth="2" strokeLinecap="round"/&gt;
+  &lt;/svg&gt;
+&lt;/button&gt;</div>
     </div>
 
     <p class="component-name" style="margin-top:20px;">画面別ボタン構成</p>
