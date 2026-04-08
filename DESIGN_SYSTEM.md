@@ -3,8 +3,8 @@
 React + Vite + Tailwind CSS v4 + Firebase 構成の管理サイト用デザインシステム。
 このドキュメントを Claude に添付することで、毎回デザイン指示をしなくても一貫した UI が作れる。
 
-**バージョン**: v1.4  
-**最終更新**: 2026-03-30
+**バージョン**: v1.6  
+**最終更新**: 2026-04-08
 
 ---
 
@@ -60,7 +60,7 @@ src/
     │   ├── Card.jsx                   ← Card / SectionTitle / Divider
     │   ├── PageHeader.jsx
     │   ├── FormField.jsx              ← FormField / BadgeLabel
-    │   ├── Table.jsx                  ← DataTable / Pagination
+    │   ├── Table.jsx                  ← DataTable / Pagination / SearchInput / CursorPagination
     │   ├── Modal.jsx
     │   └── Badge.jsx
     └── template/
@@ -442,6 +442,123 @@ const columns = [
 - `align: 'right'` を指定した列はテキスト省略（overflow-hidden）が無効になる
 - アクションボタン列は必ず `align: 'right'` を指定する
 
+---
+
+#### SearchInput（前方一致検索バー）
+
+テキスト入力中のみ右端に × クリアボタンを表示する検索フィールド。**Enterキーで検索実行**（入力中はクエリ発火しない）。
+
+```jsx
+function SearchInput({ value, onChange, onSearch, onClear, placeholder }) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') onSearch(value);
+  };
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-80 px-3.5 py-2.5 border border-gray-300 rounded-input text-sm text-gray-900 bg-white outline-none focus:border-primary"
+        style={{ paddingRight: value ? '2rem' : undefined }}
+      />
+      {value && (
+        <button
+          onClick={onClear}
+          style={{
+            position: 'absolute', right: '0.5rem',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#9CA3AF', fontSize: '1rem', lineHeight: 1,
+            display: 'flex', alignItems: 'center', padding: '2px',
+          }}
+          aria-label="クリア"
+        >
+          ×
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+**使い方:**
+
+```jsx
+<SearchInput
+  value={searchTerm}
+  onChange={setSearchTerm}   // 入力値の更新のみ（クエリは発火しない）
+  onSearch={execSearch}      // Enter キー押下時にクエリ実行
+  onClear={clearSearch}      // × ボタン：クリア＋先頭ページに戻る
+  placeholder="件名で検索（前方一致）"
+/>
+```
+
+**検索中のページャー挙動:**
+- 検索中（`isSearching = true`）は `<<` / `>>` ボタンを非表示にする（`limitToLast` と `startAt/endAt` の併用不可のため）
+- `Prev` / `Next` は検索結果内でカーソルページネーションする
+
+---
+
+#### カーソルページネーション（CursorPagination）
+
+件数増加に対応するためのFirestoreカーソルベースページネーション。全件取得せず常に最大 `PAGE_SIZE + 1` 件のみ取得する。
+
+**ページャーボタン仕様:**
+
+| ボタン | 動作 | 検索中 |
+|---|---|---|
+| `<<` | 最初の40件 | 非表示 |
+| `Prev` | 前の40件 | 表示（検索結果内） |
+| `Next` | 次の40件 | 表示（検索結果内） |
+| `>>` | 最後の40件 | 非表示 |
+
+```jsx
+// ボタンスタイル（enabled/disabled）
+const btnCls = (enabled) =>
+  `px-3 py-1.5 text-sm rounded border transition-colors ${
+    enabled
+      ? 'border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer'
+      : 'border-gray-200 text-gray-300 cursor-not-allowed'
+  }`;
+
+// ページャー描画
+<div className="flex justify-center items-center gap-2 mt-4">
+  {!isSearching && <button className={btnCls(!isFirst)} disabled={isFirst} onClick={handleFirst}>&lt;&lt;</button>}
+  <button className={btnCls(hasPrev)} disabled={!hasPrev} onClick={() => handlePrev(searchTerm)}>Prev</button>
+  <button className={btnCls(hasNext)} disabled={!hasNext} onClick={() => handleNext(searchTerm)}>Next</button>
+  {!isSearching && <button className={btnCls(!isLast)} disabled={isLast} onClick={handleLast}>&gt;&gt;</button>}
+</div>
+```
+
+**useSearchablePagination フック（抜粋）:**
+
+```jsx
+// searchTerm 変更はクエリを発火しない（Enterで execSearch を呼ぶ）
+const setSearchTerm = useCallback((term) => {
+  setSearchTermState(term);
+}, []);
+
+// Enter キー押下 or × ボタンから呼ばれる
+const execSearch = useCallback(async (term) => {
+  if (!term.trim()) { handleFirst(); return; }
+  setLoading(true);
+  const snap = await getDocs(searchQ(term, limit(PAGE_SIZE + 1)));
+  applySnap(snap, []);
+}, [handleFirst, searchQ]);
+
+const clearSearch = useCallback(() => {
+  setSearchTermState('');
+  handleFirst();
+}, [handleFirst]);
+```
+
+**前方一致クエリ（Firestoreの制約）:**
+- `orderBy(searchField)` + `startAt(term)` + `endAt(term + '\uf8ff')` で前方一致を実現
+- 検索中は `orderBy` が検索フィールドに切り替わるため日付降順ソートは外れる
+- 部分一致・複数フィールドまたぎは不可（必要な場合は Algolia 等の外部サービスを検討）
+
 #### Rowspan テーブル（グループ化・チェックボックス一括削除）
 
 Firestore からフラットに取得したレコードを特定キーでグループ化して rowspan 表示する。DataTable コンポーネントでは rowspan が扱えないため手書きの `<table>` で実装する。
@@ -675,6 +792,8 @@ Firestoreコレクション: products
 
 ### ページネーション付き一覧の状態管理
 
+件数が少ない（数百件以下）コレクション向けの全件取得パターン。
+
 ```jsx
 const PAGE_SIZE = 40;
 const [items, setItems]             = useState([]);
@@ -686,6 +805,8 @@ useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 const filtered = items.filter(item => item.name?.includes(searchTerm));
 const paged    = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 ```
+
+件数が増加するコレクション（`results` など）は `useSearchablePagination` フックを使ったカーソルページネーションを使用する。詳細は `DataTable / Pagination` セクションの「カーソルページネーション」参照。
 
 ### ヘッダーのドロップダウンナビゲーション（App.jsx 固有）
 
@@ -766,10 +887,341 @@ return (
 
 ---
 
+## グラフウィジェット
+
+分析画面でグラフを表示する際のカード・ウィジェット仕様。`chart.js/auto` を動的 import して使用（`react-chartjs-2` は使わない）。
+
+### 前提：依存パッケージ
+
+```bash
+npm install chart.js
+```
+
+### カラー定数（グラフ専用）
+
+UI カラー（`--color-primary` 等）とは別にグラフ専用定数を定義する。UI カラーは `rgb()` 連結で壊れるため流用不可。
+
+```js
+const C_CHART_BAR  = 'rgb(25,103,210)';  // 棒グラフ：濃い青
+const C_CHART_LINE = 'rgb(66,133,244)';  // 折れ線グラフ：薄い青
+```
+
+**色の使い分けルール：**
+
+| ケース | 使う色 |
+|---|---|
+| 棒グラフ（単色） | `C_CHART_BAR`（濃い青） |
+| MixWidget の折れ線 | `C_CHART_LINE`（薄い青） |
+| 複数折れ線・積み上げ棒など比較系 | 異なる色を使用（青同士にしない） |
+| MixWidget は青の濃淡で統一 | 棒=濃青・折れ線=薄青 |
+
+### Chart.js 直接描画フック
+
+`react-chartjs-2` は使わず、`useRef` + 動的 `import('chart.js/auto')` で描画する。タブ切替など deps 変化時に古い config が使われないよう `configRef` で最新を保持する。
+
+```jsx
+function useChart(canvasRef, config, deps) {
+  const chartRef    = useRef(null);
+  const configRef   = useRef(config);
+  configRef.current = config;
+
+  useEffect(() => {
+    if (!canvasRef.current) return;
+    let cancelled = false;
+    import('chart.js/auto').then(({ default: Chart }) => {
+      if (cancelled) return;
+      if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
+      if (canvasRef.current) {
+        chartRef.current = new Chart(canvasRef.current, configRef.current);
+      }
+    });
+    return () => {
+      cancelled = true;
+      if (chartRef.current) { chartRef.current.destroy(); chartRef.current = null; }
+    };
+  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+}
+```
+
+### グラフカードの基本仕様
+
+```jsx
+<div style={{
+  background: '#fff',
+  border: '1px solid #E5E7EB',       // --color-gray-200
+  borderRadius: 12,                   // --radius-card
+  boxShadow: '0 1px 3px rgba(0,0,0,0.08)', // --shadow-card
+  overflow: 'hidden',                 // グラフのはみ出し防止（必須）
+}}>
+  {/* タイトルエリア */}
+  <div style={{ padding: '16px 20px 12px' }}>
+    <div style={{
+      fontSize: 'var(--text-sm)',
+      fontWeight: 600,
+      color: 'var(--color-gray-900)',
+      fontFamily: 'ui-sans-serif, system-ui, sans-serif',
+    }}>
+      ウィジェットタイトル
+    </div>
+  </div>
+  {/* グラフエリア */}
+</div>
+```
+
+| 項目 | 値 |
+|---|---|
+| 背景 | `#fff` |
+| ボーダー | `1px solid #E5E7EB` |
+| 角丸 | `12px` |
+| シャドウ | `0 1px 3px rgba(0,0,0,0.08)` |
+| overflow | `hidden`（必須・はみ出し防止） |
+| タイトルパディング | `16px 20px 12px` |
+| タイトルフォント | `var(--text-sm)` / `font-weight: 600` / `var(--color-gray-900)` |
+
+### 共通スタイル設定（Chart.js options）
+
+```js
+const FONT = 'ui-sans-serif, system-ui, sans-serif';
+const GRID = 'rgba(0,0,0,0.06)';
+const TICK = '#9CA3AF'; // --color-gray-400 相当
+
+// ツールチップ共通設定
+tooltip: {
+  backgroundColor: 'rgba(17,24,39,0.9)',
+  titleFont: { size: 12, family: FONT },
+  bodyFont:  { size: 12, family: FONT },
+  padding: 10,
+  cornerRadius: 6,
+}
+
+// 軸共通設定
+ticks: { color: TICK, font: { size: 12, family: FONT } }
+border: { display: false }  // 軸線は非表示
+```
+
+---
+
+### HorizontalBarWidget（横棒グラフ）
+
+ラベルを左に並べ、右にグラフを描画する。ラベルは Chart.js の Y 軸ではなく HTML で描画し、バーと縦位置を合わせる。
+
+**用途：** 曜日別・時間帯別・依頼者別など、カテゴリ比較
+
+```jsx
+function HorizontalBarWidget({ title, rows, extractLabel = false }) {
+  const canvasRef = useRef(null);
+  const BAR_H   = 28;   // バーの高さ(px)
+  const BAR_PAD = 10;   // バー間スペース(px)
+  const LABEL_W = 90;   // ラベル列の幅(px)
+  const canvasH = Math.max(rows.length * (BAR_H + BAR_PAD) + 40, 80);
+
+  useChart(canvasRef, {
+    type: 'bar',
+    data: {
+      labels: displayLabels,
+      datasets: [{
+        data: rows.map(r => r.v),
+        backgroundColor: C_CHART_BAR,
+        borderRadius: 0,        // ラウンドなし
+        borderSkipped: false,
+        barThickness: BAR_H,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { top: 4, bottom: 4, left: 0, right: 8 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          /* 共通設定 */
+          callbacks: { label: (ctx) => ` ${ctx.parsed.x.toLocaleString()} 件` },
+        },
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          grid: { color: GRID, drawTicks: false },
+          border: { display: false },
+          ticks: { color: TICK, font: { size: 12, family: FONT }, maxTicksLimit: 5,
+            callback: (v) => v === 0 ? '0' : v.toLocaleString() },
+        },
+        y: { grid: { display: false }, border: { display: false }, ticks: { display: false } },
+      },
+    },
+  }, [JSON.stringify(rows)]);
+
+  return (
+    <div style={{ /* グラフカード基本仕様 */ }}>
+      <div style={{ padding: '16px 20px 12px' }}>
+        <div style={{ /* タイトル */ }}>{title}</div>
+      </div>
+      <div style={{ display: 'flex', padding: '0 16px 20px 20px', alignItems: 'flex-start' }}>
+        {/* ラベル列（HTML描画） */}
+        <div style={{ width: LABEL_W, flexShrink: 0, paddingTop: 10 }}>
+          {displayLabels.map((lbl, i) => (
+            <div key={i} style={{
+              height: BAR_H + BAR_PAD,
+              display: 'flex', alignItems: 'center',
+              fontSize: 'var(--text-sm)', color: 'var(--color-gray-900)',
+            }}>
+              {lbl}
+            </div>
+          ))}
+        </div>
+        {/* グラフ */}
+        <div style={{ flex: 1, position: 'relative', height: canvasH, overflow: 'hidden' }}>
+          <canvas ref={canvasRef} style={{ display: 'block' }} />
+        </div>
+      </div>
+    </div>
+  );
+}
+```
+
+**グリッド：** X軸のみ（縦線）。Y軸グリッドは非表示。
+
+---
+
+### MixWidget（棒グラフ＋折れ線グラフ混合）
+
+タブ切替で複数の集計を1ウィジェットで表示。右サイドに数値サマリーを配置。
+
+**用途：** 日別推移など、棒グラフと折れ線グラフを同一軸・別軸で重ねたい場合
+
+**タブデザイン：**
+- アクティブインジケーターは上部 `4px` の青線（`position: absolute` で `span` として描画）
+- 右下・左下のみ `border-radius: 0 0 3px 3px` でラウンド
+- 非アクティブ時はラベル色 `var(--color-gray-900)`、アクティブ時は `rgb(59,130,246)` （= `C_PRIMARY`）
+
+```jsx
+// タブボタン（抜粋）
+<button style={{ position: 'relative', /* ... */ }}>
+  <span style={{
+    position: 'absolute', top: 0, left: 0, right: 0, height: 4,
+    background: isActive ? C_PRIMARY : 'transparent',
+    borderRadius: '0 0 3px 3px',
+  }} />
+  <span style={{
+    fontSize: 'var(--text-sm)',
+    color: isActive ? C_PRIMARY : 'var(--color-gray-900)',
+    fontWeight: 700, marginTop: 12, marginBottom: 4,
+  }}>
+    {tab.label}
+  </span>
+</button>
+```
+
+**データセット定義：**
+
+```js
+// 棒グラフ用
+function makeBarDS(label, data, color) {
+  return {
+    type: 'bar', label, data,
+    backgroundColor: color,   // rgb()形式を直接指定（+'cc'連結は無効になるため不可）
+    borderColor: color,
+    borderWidth: 0,
+    borderRadius: 0,          // ラウンドなし
+    borderSkipped: false,
+    yAxisID: 'y',
+  };
+}
+
+// 折れ線グラフ用
+function makeLineDS(label, data, color) {
+  return {
+    type: 'line', label, data,
+    borderColor: color,
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    pointRadius: 0,
+    tension: 0,               // 直線（カーブなし）
+    fill: false,
+    yAxisID: 'y1',            // 右軸
+  };
+}
+```
+
+**スケール設定（2軸）：**
+
+```js
+scales: {
+  x: {
+    grid: { display: false },
+    border: { display: false },
+    ticks: { color: TICK, font: { size: 12, family: FONT }, maxTicksLimit: 10, maxRotation: 0 },
+  },
+  y: {   // 左軸（棒グラフ）
+    position: 'left',
+    beginAtZero: true,
+    grid: { color: GRID, drawTicks: false },
+    border: { display: false },
+    ticks: { color: TICK, font: { size: 12, family: FONT } },
+  },
+  y1: {  // 右軸（折れ線グラフ）
+    position: 'right',
+    beginAtZero: true,
+    grid: { display: false },   // 右軸はグリッド非表示
+    border: { display: false },
+    ticks: { color: TICK, font: { size: 12, family: FONT } },
+  },
+}
+```
+
+**グリッド：** Y軸横線のみ（左軸）。X軸・右軸のグリッドは非表示。
+
+**右サイドパネル（数値サマリー）：**
+
+```jsx
+<div style={{
+  flexBasis: '18%', minWidth: 160, maxWidth: 260, flexShrink: 0,
+  padding: '0 20px 0 12px',
+  display: 'flex', flexDirection: 'column',
+  gap: 30, justifyContent: 'flex-start',
+}}>
+  {series.map(s => (
+    <div key={s.label}>
+      {/* アイコン + ラベル */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+        {s.type === 'bar'
+          ? <span style={{ width: 10, height: 10, borderRadius: 2, background: s.color }} />
+          : <span style={{ width: 16, height: 3, background: s.color, borderRadius: 1 }} />
+        }
+        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-gray-900)' }}>
+          {s.label}
+        </span>
+      </div>
+      {/* 補足テキスト */}
+      <div style={{ fontSize: 'var(--text-xs)', color: '#9CA3AF', marginBottom: 2 }}>{s.sub}</div>
+      {/* 数値 */}
+      <div style={{ fontSize: 34, fontWeight: 700, color: 'var(--color-gray-900)', lineHeight: 1.2 }}>
+        {s.value}
+      </div>
+    </div>
+  ))}
+</div>
+```
+
+| 項目 | 値 |
+|---|---|
+| パネル幅 | `flexBasis: 18%` / `min: 160px` / `max: 260px` |
+| 系列間 gap | `30px` |
+| ラベル | `var(--text-sm)` / `font-weight: 600` / `var(--color-gray-900)` |
+| 補足テキスト | `var(--text-xs)` / `#9CA3AF` |
+| 数値 | `34px` / `font-weight: 700` / `var(--color-gray-900)` |
+| 棒アイコン | `10×10px` 角丸2px の正方形 |
+| 線アイコン | `16×3px` 横線 |
+
+---
+
 ## 変更履歴
 
 | バージョン | 日付 | 内容 |
 |---|---|---|
+| v1.6 | 2026-04-08 | SearchInput・カーソルページネーション（CursorPagination）を DataTable セクションに追加。ページネーション付き一覧パターンを更新 |
+| v1.5 | 2026-04-03 | グラフウィジェットセクション追加（HorizontalBarWidget・MixWidget の仕様・カラー定数・useChart フック） |
 | v1.4 | 2026-03-30 | Button セクションにアイコンボタン（追加・削除）仕様を追加。ページ全体はテキストボタン、カード内フィールド操作は円形 SVG アイコンボタンに使い分けるルールを明記 |
 | v1.3 | 2026-03-28 | 設計方針セクション追加 / コンポーネント内パターン整理（DataTableにrowspan・ModalにErrorモーダル・確認モーダルを統合）/ よくある実装パターンをコンポーネント横断のものに限定 |
 | v1.2 | 2026-03-28 | DropdownNavMenu パターン追加 / Card内テーブルパターン更新 / loading + ref の注意事項追加 / rowspanテーブル・チェックボックス一括削除パターン追加 |

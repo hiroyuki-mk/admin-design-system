@@ -401,7 +401,7 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
   <div class="showcase-header-title">
     <div class="app-logo-icon">A</div>
     Admin Design System
-    <span class="showcase-header-badge">v1.2</span>
+    <span class="showcase-header-badge">v1.5</span>
   </div>
   <nav class="showcase-nav">
     <a href="#tokens">トークン</a>
@@ -410,10 +410,12 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
     <a href="#card">Card</a>
     <a href="#pageheader">PageHeader</a>
     <a href="#table">Table</a>
+    <a href="#search">SearchInput</a>
     <a href="#modal">Modal</a>
     <a href="#badge">Badge</a>
-    <a href="#pages">画面パターン</a>
+    <a href="#charts">グラフ</a>
     <a href="#dropdown">DropdownNav</a>
+    <a href="#pages">画面パターン</a>
   </nav>
 </header>
 
@@ -426,13 +428,13 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
       <div style="width:48px;height:48px;background:var(--color-primary);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:700;">A</div>
       <div>
-        <div style="font-size:32px;font-weight:700;color:var(--color-gray-900);">Admin Design System <small style="font-size:16px;color:var(--color-gray-500);">v1.2</small></div>
+        <div style="font-size:32px;font-weight:700;color:var(--color-gray-900);">Admin Design System <small style="font-size:16px;color:var(--color-gray-500);">v1.5</small></div>
         <div style="font-size:14px;color:var(--color-gray-500);margin-top:2px;">React + Vite + Tailwind CSS v4 + Firebase — 管理サイト共通UIライブラリ</div>
       </div>
     </div>
     <div style="display:flex;gap:32px;margin-top:24px;">
       <div style="text-align:center;">
-        <div style="font-size:28px;font-weight:700;color:var(--color-primary);">11</div>
+        <div style="font-size:28px;font-weight:700;color:var(--color-primary);">13</div>
         <div style="font-size:12px;color:var(--color-gray-500);">コンポーネント</div>
       </div>
       <div style="text-align:center;">
@@ -875,7 +877,10 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
         <!-- 検索バー -->
         <div style="padding:24px;display:flex;justify-content:space-between;align-items:center;gap:16px;">
           <button class="btn btn-primary">追加</button>
-          <input class="input" type="text" placeholder="依頼メールタイトル・作業者で検索..." style="width:300px;" />
+          <div style="position:relative;display:inline-flex;align-items:center;">
+            <input class="input" type="text" id="demo-search-input" placeholder="依頼メールタイトルで検索（前方一致）" style="width:320px;padding-right:2rem;" value="○○楽団" />
+            <button onclick="document.getElementById('demo-search-input').value='';this.parentNode.querySelector('button').style.display='none';" style="position:absolute;right:0.5rem;background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:1rem;line-height:1;display:flex;align-items:center;padding:2px;" aria-label="クリア">×</button>
+          </div>
         </div>
         <!-- テーブル -->
         <div class="table-card" style="margin:0 24px;">
@@ -912,13 +917,13 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
               </tr>
             </tbody>
           </table>
-          <!-- ページネーション -->
+          <!-- カーソルページネーション -->
           <div class="pagination">
-            <span class="pagination-info">128 件中 1〜40 件を表示</span>
             <div class="pagination-nav">
-              <button class="page-btn" disabled>← 前へ</button>
-              <span>1 / 4</span>
-              <button class="page-btn">次へ →</button>
+              <button class="page-btn" disabled>&lt;&lt;</button>
+              <button class="page-btn" disabled>Prev</button>
+              <button class="page-btn">Next</button>
+              <button class="page-btn">&gt;&gt;</button>
             </div>
           </div>
         </div>
@@ -940,10 +945,28 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
     return row[key] ?? '-';
   }}
 /&gt;
-&lt;Pagination total={128} pageSize={40} currentPage={1} onPageChange={fn} /&gt;</div>
+// カーソルページネーション（件数増加するコレクション向け）
+const { items, loading, hasPrev, hasNext, isFirst, isLast, isSearching,
+  searchTerm, setSearchTerm, execSearch, clearSearch,
+  handleFirst, handleLast, handleNext, handlePrev,
+} = useSearchablePagination({ colName: 'works', defaultOrder: 'createdAt', searchField: 'requestNumber' });
+
+&lt;SearchInput
+  value={searchTerm}
+  onChange={setSearchTerm}
+  onSearch={execSearch}
+  onClear={clearSearch}
+  placeholder="依頼メールタイトルで検索（前方一致）"
+/&gt;
+
+// ページャー（検索中は &lt;&lt; / &gt;&gt; を非表示）
+{!isSearching &amp;&amp; &lt;button disabled={isFirst} onClick={handleFirst}&gt;&lt;&lt;&lt;/button&gt;}
+&lt;button disabled={!hasPrev} onClick={() =&gt; handlePrev(searchTerm)}&gt;Prev&lt;/button&gt;
+&lt;button disabled={!hasNext} onClick={() =&gt; handleNext(searchTerm)}&gt;Next&lt;/button&gt;
+{!isSearching &amp;&amp; &lt;button disabled={isLast} onClick={handleLast}&gt;&gt;&gt;&lt;/button&gt;}</div>
     </div>
 
-    <p class="component-name" style="margin-top:32px;">ROWSPAN TABLE — グループ化・チェックボックス一括削除</p>
+    <p class="component-name" style="margin-top:32px;">ROWSPAN TABLE — グループ化・カーソルページネーション</p>
     <div class="demo-block">
       <div class="demo-canvas column" style="padding:0;background:var(--color-bg);">
         <div style="padding:24px 24px 16px;display:flex;align-items:flex-start;justify-content:space-between;">
@@ -951,13 +974,13 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
             <div style="font-size:22px;font-weight:700;color:var(--color-gray-900);">実績一覧</div>
             <div style="font-size:13px;color:var(--color-gray-500);margin-top:4px;">CSVでアップロードした作業実績の一覧です</div>
           </div>
-          <button style="background:var(--color-danger);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">選択した2件を削除</button>
+
         </div>
         <div style="margin:0 24px 24px;background:#fff;border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead>
               <tr style="background:var(--color-gray-100);border-bottom:1px solid var(--color-gray-200);">
-                <th style="padding:10px 12px;text-align:center;width:40px;"><input type="checkbox" id="rs-cb-all" style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></th>
+
                 <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">日付</th>
                 <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);white-space:nowrap;">From</th>
                 <th style="padding:10px 12px;text-align:left;font-weight:600;color:var(--color-gray-700);min-width:200px;">件名</th>
@@ -969,7 +992,7 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
             <tbody>
               <!-- グループ1：チェック済み（bg-primary-light） -->
               <tr style="background:var(--color-primary-light);">
-                <td rowspan="2" style="padding:10px 12px;text-align:center;vertical-align:top;border-bottom:1px solid var(--color-gray-200);"><input type="checkbox" checked style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></td>
+
                 <td rowspan="2" style="padding:10px 12px;vertical-align:top;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">2026/02/03</td>
                 <td rowspan="2" style="padding:10px 12px;vertical-align:top;color:var(--color-gray-600);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">竹中智香</td>
                 <td rowspan="2" style="padding:10px 12px;vertical-align:top;color:var(--color-gray-800);border-bottom:1px solid var(--color-gray-200);">[smflow01:6261] 新規公演ご登録のお願い</td>
@@ -977,14 +1000,13 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
                 <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">02/10 16:21</td>
                 <td style="padding:10px 12px;text-align:right;color:var(--color-gray-600);border-bottom:1px solid var(--color-gray-200);">75分</td>
               </tr>
-              <tr style="background:var(--color-primary-light);">
+              <tr style="background:#fff;">
                 <td style="padding:10px 12px;color:var(--color-gray-900);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">富田</td>
                 <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">02/10 17:05</td>
                 <td style="padding:10px 12px;text-align:right;color:var(--color-gray-600);border-bottom:1px solid var(--color-gray-200);">32分</td>
               </tr>
               <!-- グループ2：未選択 -->
               <tr style="background:#fff;">
-                <td style="padding:10px 12px;text-align:center;vertical-align:top;border-bottom:1px solid var(--color-gray-200);"><input type="checkbox" style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></td>
                 <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">2026/02/02</td>
                 <td style="padding:10px 12px;color:var(--color-gray-600);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">吉村玲未花</td>
                 <td style="padding:10px 12px;color:var(--color-gray-800);border-bottom:1px solid var(--color-gray-200);">[smflow01:6248] ケツメイシ新規公演</td>
@@ -994,7 +1016,6 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
               </tr>
               <!-- グループ3：未選択・奇数行 -->
               <tr style="background:var(--color-gray-50);">
-                <td style="padding:10px 12px;text-align:center;vertical-align:top;border-bottom:1px solid var(--color-gray-200);"><input type="checkbox" style="width:14px;height:14px;accent-color:var(--color-primary);cursor:pointer;"></td>
                 <td style="padding:10px 12px;color:var(--color-gray-600);white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">2026/02/02</td>
                 <td style="padding:10px 12px;color:var(--color-gray-600);max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-bottom:1px solid var(--color-gray-200);">宇田川みず紀</td>
                 <td style="padding:10px 12px;color:var(--color-gray-800);border-bottom:1px solid var(--color-gray-200);">[smflow01:6232] SEAdLINNNG委託</td>
@@ -1004,15 +1025,125 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
               </tr>
             </tbody>
           </table>
+          <!-- カーソルページネーション -->
+          <div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:16px 24px;">
+            <button class="page-btn" disabled>&lt;&lt;</button>
+            <button class="page-btn" disabled>Prev</button>
+            <button class="page-btn">Next</button>
+            <button class="page-btn">&gt;&gt;</button>
+          </div>
         </div>
       </div>
-      <div class="demo-code">// groupRecords() でフラットなレコードをグループ化
-// groups.map() でrowspan表示
-// selected.has(key) で選択状態を管理（bg-primary-light でハイライト）
-// indeterminate チェックボックスで全選択の中間状態を表現
-// ※ DataTable コンポーネントは rowspan 非対応のため手書き &lt;table&gt; を使用</div>
+      <div class="demo-code">// groupRecords() でフラットなレコードをグループ化（parentId で親子紐づけ）
+// isSub=false がメイン行、isSub=true がサブ行
+// parentId がない場合は単独グループとして表示
+// ※ DataTable コンポーネントは rowspan 非対応のため手書き &lt;table&gt; を使用
+// ※ カーソルページネーションは useSearchablePagination フックで管理</div>
     </div>
-    <script>document.getElementById('rs-cb-all').indeterminate = true;</script>
+  </section>
+
+
+  <!-- ============================================================
+       SearchInput / CursorPagination
+       ============================================================ -->
+  <section class="section" id="search">
+    <div class="section-label">Component</div>
+    <div class="section-title">SearchInput / CursorPagination</div>
+    <div class="section-desc">前方一致検索バー（Enterで実行・×でクリア）＋カーソルページネーション。全件取得せず常に最大41件のみ取得する。</div>
+    <hr class="section-divider">
+
+    <p class="component-name">SEARCH INPUT — 入力中のみ × クリアボタン表示</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="gap:16px;flex-direction:column;align-items:flex-start;">
+        <!-- 空の状態 -->
+        <div>
+          <div style="font-size:12px;color:var(--color-gray-500);margin-bottom:8px;">空の状態（× なし）</div>
+          <div style="position:relative;display:inline-flex;align-items:center;">
+            <input class="input" type="text" placeholder="件名で検索（前方一致）" style="width:320px;" />
+          </div>
+        </div>
+        <!-- 入力中の状態 -->
+        <div>
+          <div style="font-size:12px;color:var(--color-gray-500);margin-bottom:8px;">入力中（× あり・Enter で検索）</div>
+          <div style="position:relative;display:inline-flex;align-items:center;">
+            <input class="input" type="text" id="si-input" value="○○楽団ツアー" style="width:320px;padding-right:2rem;" />
+            <button id="si-clear" onclick="document.getElementById('si-input').value='';document.getElementById('si-clear').style.display='none';" style="position:absolute;right:0.5rem;background:none;border:none;cursor:pointer;color:#9CA3AF;font-size:1rem;line-height:1;display:flex;align-items:center;padding:2px;" aria-label="クリア">×</button>
+          </div>
+          <div style="font-size:11px;color:var(--color-gray-500);margin-top:6px;">← Enterキーで検索実行（入力中はクエリ発火しない）</div>
+        </div>
+      </div>
+      <div class="demo-code">function SearchInput({ value, onChange, onSearch, onClear, placeholder }) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') onSearch(value);
+  };
+  return (
+    &lt;div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}&gt;
+      &lt;input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) =&gt; onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-80 px-3.5 py-2.5 border border-gray-300 rounded-input ..."
+        style={{ paddingRight: value ? '2rem' : undefined }}
+      /&gt;
+      {value &amp;&amp; (
+        &lt;button onClick={onClear} aria-label="クリア"
+          style={{ position: 'absolute', right: '0.5rem', ... }}&gt;
+          ×
+        &lt;/button&gt;
+      )}
+    &lt;/div&gt;
+  );
+}</div>
+    </div>
+
+    <p class="component-name" style="margin-top:32px;">CURSOR PAGINATION — << Prev Next >> ページャー</p>
+    <div class="demo-block">
+      <div class="demo-canvas column" style="padding:0;background:var(--color-bg);">
+        <!-- 通常時（全ボタン表示） -->
+        <div style="padding:16px 24px 0;">
+          <div style="font-size:12px;color:var(--color-gray-500);margin-bottom:12px;">通常時（検索なし）— &lt;&lt; / &gt;&gt; 表示</div>
+          <div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:12px 0;background:#fff;border-radius:8px;border:1px solid var(--color-gray-200);">
+            <button class="page-btn" disabled>&lt;&lt;</button>
+            <button class="page-btn" disabled>Prev</button>
+            <button class="page-btn">Next</button>
+            <button class="page-btn">&gt;&gt;</button>
+          </div>
+        </div>
+        <!-- 検索中（<< / >> 非表示） -->
+        <div style="padding:16px 24px 16px;">
+          <div style="font-size:12px;color:var(--color-gray-500);margin-bottom:12px;">検索中（isSearching=true）— &lt;&lt; / &gt;&gt; 非表示</div>
+          <div style="display:flex;justify-content:center;align-items:center;gap:8px;padding:12px 0;background:#fff;border-radius:8px;border:1px solid var(--color-gray-200);">
+            <button class="page-btn" disabled>Prev</button>
+            <button class="page-btn">Next</button>
+          </div>
+        </div>
+      </div>
+      <div class="demo-code">// 有効/無効のスタイル切り替え
+const btnCls = (enabled) =>
+  `px-3 py-1.5 text-sm rounded border transition-colors ${
+    enabled
+      ? 'border-gray-300 text-gray-700 hover:bg-gray-50 cursor-pointer'
+      : 'border-gray-200 text-gray-300 cursor-not-allowed'
+  }`;
+
+// 検索中は &lt;&lt; / &gt;&gt; を非表示
+&lt;div className="flex justify-center items-center gap-2 mt-4"&gt;
+  {!isSearching &amp;&amp; (
+    &lt;button className={btnCls(!isFirst)} disabled={isFirst}
+      onClick={handleFirst}&gt;&lt;&lt;&lt;/button&gt;
+  )}
+  &lt;button className={btnCls(hasPrev)} disabled={!hasPrev}
+    onClick={() =&gt; handlePrev(searchTerm)}&gt;Prev&lt;/button&gt;
+  &lt;button className={btnCls(hasNext)} disabled={!hasNext}
+    onClick={() =&gt; handleNext(searchTerm)}&gt;Next&lt;/button&gt;
+  {!isSearching &amp;&amp; (
+    &lt;button className={btnCls(!isLast)} disabled={isLast}
+      onClick={handleLast}&gt;&gt;&gt;&lt;/button&gt;
+  )}
+&lt;/div&gt;</div>
+    </div>
   </section>
 
   <!-- ============================================================
@@ -1170,6 +1301,256 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
 
   <!-- ============================================================
        9. 画面パターン
+       ============================================================ -->
+  <section class="section" id="charts">
+    <div class="section-label">Component</div>
+    <div class="section-title">グラフウィジェット</div>
+    <div class="section-desc">chart.js/auto を動的 import して描画。react-chartjs-2 は使わない。useChart フックで Canvas を直接操作する。</div>
+    <hr class="section-divider">
+
+    <!-- カラー定数 -->
+    <p class="component-name">CHART COLOR CONSTANTS</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="gap:16px;flex-direction:column;">
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:6px;background:rgb(25,103,210);"></div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--color-gray-900);">C_CHART_BAR</div>
+              <div style="font-size:11px;color:var(--color-gray-500);font-family:monospace;">rgb(25,103,210)</div>
+              <div style="font-size:11px;color:var(--color-gray-400);">棒グラフ — 濃い青</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:6px;background:rgb(66,133,244);"></div>
+            <div>
+              <div style="font-size:12px;font-weight:600;color:var(--color-gray-900);">C_CHART_LINE</div>
+              <div style="font-size:11px;color:var(--color-gray-500);font-family:monospace;">rgb(66,133,244)</div>
+              <div style="font-size:11px;color:var(--color-gray-400);">折れ線グラフ — 薄い青</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--color-gray-500);border-top:1px solid var(--color-gray-200);padding-top:12px;">
+          ⚠️ backgroundColor に rgb() 形式の色に <code>+ 'cc'</code> を連結すると無効値になる。直接指定すること。
+        </div>
+      </div>
+    </div>
+
+    <!-- グラフカード基本仕様 -->
+    <p class="component-name" style="margin-top:24px;">GRAPH CARD — 基本仕様</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:var(--color-gray-50);">
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;min-width:280px;">
+          <div style="padding:16px 20px 12px;">
+            <div style="font-size:14px;font-weight:600;color:var(--color-gray-900);">ウィジェットタイトル</div>
+          </div>
+          <div style="padding:0 20px 20px;color:var(--color-gray-400);font-size:13px;">グラフエリア</div>
+        </div>
+      </div>
+      <div class="demo-code">border-radius: 12px  |  overflow: hidden（必須）  |  box-shadow: 0 1px 3px rgba(0,0,0,0.08)
+タイトル: font-size: var(--text-sm) / font-weight: 600 / color: var(--color-gray-900)
+タイトルpadding: 16px 20px 12px</div>
+    </div>
+
+    <!-- HorizontalBarWidget -->
+    <p class="component-name" style="margin-top:24px;">HorizontalBarWidget — 横棒グラフ</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:var(--color-gray-50);flex-direction:column;gap:16px;">
+        <!-- カードプレビュー -->
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;width:100%;max-width:480px;">
+          <div style="padding:16px 20px 12px;">
+            <div style="font-size:14px;font-weight:600;color:var(--color-gray-900);">曜日別依頼数</div>
+          </div>
+          <div style="display:flex;padding:0 16px 20px 20px;align-items:flex-start;">
+            <!-- ラベル列 -->
+            <div style="width:36px;flex-shrink:0;">
+              <div style="height:38px;display:flex;align-items:center;font-size:14px;color:var(--color-gray-900);">月</div>
+              <div style="height:38px;display:flex;align-items:center;font-size:14px;color:var(--color-gray-900);">火</div>
+              <div style="height:38px;display:flex;align-items:center;font-size:14px;color:var(--color-gray-900);">水</div>
+              <div style="height:38px;display:flex;align-items:center;font-size:14px;color:var(--color-gray-900);">木</div>
+            </div>
+            <!-- バー列 -->
+            <div style="flex:1;padding-top:9px;">
+              <div style="height:28px;margin-bottom:10px;background:rgb(25,103,210);width:90%;border-radius:0;"></div>
+              <div style="height:28px;margin-bottom:10px;background:rgb(25,103,210);width:70%;border-radius:0;"></div>
+              <div style="height:28px;margin-bottom:10px;background:rgb(25,103,210);width:50%;border-radius:0;"></div>
+              <div style="height:28px;background:rgb(25,103,210);width:80%;border-radius:0;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:12px;color:var(--color-gray-500);">
+          ラベルは Chart.js Y軸ではなく HTML で描画し縦位置を合わせる。BAR_H=28px / BAR_PAD=10px。<br>
+          グリッド: X軸（縦線）のみ。Y軸グリッド非表示。バーはラウンドなし（borderRadius: 0）。<br>
+          ツールチップで件数表示。右端の数値は常時表示しない。<br>
+          依頼者名は <code>"表示名" &lt;email&gt;</code> 形式から表示名だけ抽出（extractLabel prop）。
+        </div>
+      </div>
+    </div>
+
+    <!-- MixWidget -->
+    <p class="component-name" style="margin-top:24px;">MixWidget — 棒グラフ＋折れ線グラフ混合</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:var(--color-gray-50);flex-direction:column;gap:16px;">
+        <!-- タブ -->
+        <div style="background:#fff;border:1px solid #E5E7EB;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.08);overflow:hidden;width:100%;">
+          <div style="display:flex;padding:0 20px;border-bottom:none;">
+            <!-- アクティブタブ -->
+            <div style="position:relative;padding:14px 0;margin-right:32px;cursor:pointer;">
+              <span style="position:absolute;top:0;left:0;right:0;height:4px;background:rgb(59,130,246);border-radius:0 0 3px 3px;"></span>
+              <div style="font-size:14px;font-weight:700;color:rgb(59,130,246);margin-top:12px;margin-bottom:4px;">依頼数・未着手数</div>
+            </div>
+            <!-- 非アクティブタブ -->
+            <div style="position:relative;padding:14px 0;cursor:pointer;">
+              <span style="position:absolute;top:0;left:0;right:0;height:4px;background:transparent;border-radius:0 0 3px 3px;"></span>
+              <div style="font-size:14px;font-weight:700;color:var(--color-gray-900);margin-top:12px;margin-bottom:4px;">作業完了数・受付作成数</div>
+            </div>
+          </div>
+          <!-- グラフエリア + 右サイドパネル -->
+          <div style="display:flex;padding:10px 0 16px;">
+            <!-- グラフ（ダミー） -->
+            <div style="flex:1;padding:0 16px;min-width:0;">
+              <div style="position:relative;width:100%;height:180px;background:var(--color-gray-50);border-radius:8px;display:flex;align-items:flex-end;gap:4px;padding:12px 12px 28px;">
+                <div style="flex:1;background:rgb(25,103,210);height:60%;border-radius:0;"></div>
+                <div style="flex:1;background:rgb(25,103,210);height:80%;border-radius:0;"></div>
+                <div style="flex:1;background:rgb(25,103,210);height:50%;border-radius:0;"></div>
+                <div style="flex:1;background:rgb(25,103,210);height:90%;border-radius:0;"></div>
+                <div style="flex:1;background:rgb(25,103,210);height:40%;border-radius:0;"></div>
+                <div style="flex:1;background:rgb(25,103,210);height:70%;border-radius:0;"></div>
+                <!-- 折れ線（SVGで代用） -->
+                <svg style="position:absolute;top:12px;left:12px;right:12px;bottom:28px;width:calc(100% - 24px);height:calc(100% - 40px);" viewBox="0 0 300 140" preserveAspectRatio="none">
+                  <polyline points="25,90 75,60 125,100 175,30 225,80 275,50" fill="none" stroke="rgb(66,133,244)" stroke-width="2.5"/>
+                </svg>
+              </div>
+            </div>
+            <!-- 右サイドパネル -->
+            <div style="width:180px;flex-shrink:0;padding:0 20px 0 12px;display:flex;flex-direction:column;gap:24px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                  <span style="width:10px;height:10px;border-radius:2px;background:rgb(25,103,210);display:inline-block;"></span>
+                  <span style="font-size:14px;font-weight:600;color:var(--color-gray-900);">依頼数</span>
+                </div>
+                <div style="font-size:12px;color:#9CA3AF;margin-bottom:2px;">合計 / 平均</div>
+                <div style="font-size:28px;font-weight:700;color:var(--color-gray-900);line-height:1.2;">217 / 7.2</div>
+              </div>
+              <div>
+                <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                  <span style="width:16px;height:3px;border-radius:1px;background:rgb(66,133,244);display:inline-block;"></span>
+                  <span style="font-size:14px;font-weight:600;color:var(--color-gray-900);">未着手数</span>
+                </div>
+                <div style="font-size:12px;color:#9CA3AF;margin-bottom:2px;">平均</div>
+                <div style="font-size:28px;font-weight:700;color:var(--color-gray-900);line-height:1.2;">12.4</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 仕様メモ -->
+        <div style="font-size:12px;color:var(--color-gray-500);line-height:1.8;">
+          <strong>タブ:</strong> アクティブ上部に4px青線（position:absolute span）/ 右下・左下 border-radius: 0 0 3px 3px<br>
+          <strong>グリッド:</strong> Y軸横線のみ（左軸）。X軸・右軸グリッドは非表示<br>
+          <strong>2軸:</strong> 棒グラフ=左軸(y) / 折れ線=右軸(y1)。両軸ともTICK色(#9CA3AF)で統一<br>
+          <strong>右パネル幅:</strong> flexBasis:18% / min:160px / max:260px。棒=■アイコン / 折れ線=横線アイコン<br>
+          <strong>色ルール:</strong> 棒=C_CHART_BAR（濃青）/ MixWidget折れ線=C_CHART_LINE（薄青）/ 複数比較系は別色
+        </div>
+      </div>
+    </div>
+
+    <!-- 色の使い分けルール -->
+    <p class="component-name" style="margin-top:24px;">COLOR RULE — 使い分け</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="flex-direction:column;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;">
+          <div style="background:var(--color-gray-50);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:600;color:var(--color-gray-700);margin-bottom:6px;">MixWidget（棒＋折れ線）</div>
+            <div style="font-size:12px;color:var(--color-gray-500);">青の濃淡で統一。棒=C_CHART_BAR / 折れ線=C_CHART_LINE</div>
+          </div>
+          <div style="background:var(--color-gray-50);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:600;color:var(--color-gray-700);margin-bottom:6px;">複数折れ線・比較系</div>
+            <div style="font-size:12px;color:var(--color-gray-500);">異なる色を使用（青同士にしない）</div>
+          </div>
+          <div style="background:var(--color-gray-50);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:600;color:var(--color-gray-700);margin-bottom:6px;">HorizontalBarWidget</div>
+            <div style="font-size:12px;color:var(--color-gray-500);">単色のみ。C_CHART_BAR（濃青）を使用</div>
+          </div>
+          <div style="background:var(--color-danger-light);border-radius:8px;padding:14px 16px;">
+            <div style="font-size:12px;font-weight:600;color:var(--color-danger);margin-bottom:6px;">⚠️ 注意</div>
+            <div style="font-size:12px;color:var(--color-gray-500);">rgb()形式の色に +'cc' 連結は無効。直接指定すること</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+<section class="section" id="dropdown">
+    <div class="section-label">Implementation Pattern</div>
+    <div class="section-title">DropdownNavMenu（App.jsx 固有）</div>
+    <div class="section-desc">App.jsx 固有の実装パターン。サブメニューを持つナビゲーション。ボタンとドロップダウンの間に透明ブリッジを配置して onMouseLeave の誤発火を防いでいる。</div>
+    <hr class="section-divider">
+
+    <p class="component-name">HEADER NAVIGATION</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="background:#fff;justify-content:flex-start;padding:0;border:1px solid var(--color-gray-200);">
+        <div style="height:56px;border-bottom:1px solid var(--color-gray-200);display:flex;align-items:center;padding:0 24px;gap:32px;width:100%;">
+          <div style="font-size:15px;font-weight:700;color:var(--color-gray-900);display:flex;align-items:center;gap:8px;">
+            <div style="width:28px;height:28px;background:var(--color-primary);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;">W</div>
+            Work Design Tool
+          </div>
+          <nav style="display:flex;gap:4px;align-items:center;">
+            <a href="#" onclick="return false" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--color-gray-500);" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">作業設計</a>
+            <a href="#" onclick="return false" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--color-gray-500);" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">テキスト変換</a>
+
+            <!-- マスタ ドロップダウン -->
+            <div class="dd-wrap" style="position:relative;" onmouseleave="this.querySelector('.dd-menu').style.display='none'">
+              <button onclick="var m=this.nextElementSibling;m.style.display=m.style.display==='block'?'none':'block'" onmouseenter="this.nextElementSibling.style.display='block'" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="">マスタ <span style="font-size:9px;opacity:.7;">▼</span></button>
+              <!-- 透明ブリッジ -->
+              <div style="position:absolute;top:100%;left:0;width:100%;height:4px;"></div>
+              <div class="dd-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--color-gray-200);border-radius:8px;min-width:160px;box-shadow:var(--shadow-dropdown);overflow:hidden;z-index:100;">
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);transition:background .1s;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">取引先アドレス</a>
+              </div>
+            </div>
+
+            <!-- 実績管理 ドロップダウン（アクティブ状態） -->
+            <div class="dd-wrap" style="position:relative;" onmouseleave="this.querySelector('.dd-menu2').style.display='none'">
+              <button onclick="var m=this.nextElementSibling.nextElementSibling;m.style.display=m.style.display==='block'?'none':'block'" onmouseenter="this.nextElementSibling.nextElementSibling.style.display='block'" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-primary-light);cursor:pointer;color:var(--color-primary);display:flex;align-items:center;gap:3px;font-family:inherit;">実績管理 <span style="font-size:9px;opacity:.7;">▼</span></button>
+              <div style="position:absolute;top:100%;left:0;width:100%;height:4px;"></div>
+              <div class="dd-menu2" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--color-gray-200);border-radius:8px;min-width:160px;box-shadow:var(--shadow-dropdown);overflow:hidden;z-index:100;">
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">依頼状況分析</a>
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;background:var(--color-primary-light);color:var(--color-primary);">実績一覧</a>
+                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">CSVアップロード</a>
+              </div>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <p class="component-name" style="margin-top:24px;">STATES</p>
+    <div class="demo-block">
+      <div class="demo-canvas" style="gap:12px;flex-wrap:wrap;justify-content:flex-start;">
+        <div style="position:relative;display:inline-block;">
+          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;">通常 <span style="font-size:9px;opacity:.7;">▼</span></button>
+        </div>
+        <div style="position:relative;display:inline-block;">
+          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-gray-100);cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;">ホバー <span style="font-size:9px;opacity:.7;">▼</span></button>
+        </div>
+        <div style="position:relative;display:inline-block;">
+          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-primary-light);cursor:pointer;color:var(--color-primary);display:flex;align-items:center;gap:3px;font-family:inherit;">アクティブ <span style="font-size:9px;opacity:.7;">▼</span></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       Rowspan テーブル
+       ============================================================ -->
+
+  <!-- ============================================================
+       Modal パターン
+       ============================================================ -->
+
+
+  <!-- ============================================================
+       グラフウィジェット
        ============================================================ -->
   <section class="section" id="pages">
     <div class="section-label">Page Patterns</div>
@@ -1357,73 +1738,7 @@ textarea.input { resize: vertical; min-height: 100px; line-height: 1.6; }
   <!-- ============================================================
        DropdownNavMenu
        ============================================================ -->
-  <section class="section" id="dropdown">
-    <div class="section-label">Implementation Pattern</div>
-    <div class="section-title">DropdownNavMenu（App.jsx 固有）</div>
-    <div class="section-desc">App.jsx 固有の実装パターン。サブメニューを持つナビゲーション。ボタンとドロップダウンの間に透明ブリッジを配置して onMouseLeave の誤発火を防いでいる。</div>
-    <hr class="section-divider">
-
-    <p class="component-name">HEADER NAVIGATION</p>
-    <div class="demo-block">
-      <div class="demo-canvas" style="background:#fff;justify-content:flex-start;padding:0;border:1px solid var(--color-gray-200);">
-        <div style="height:56px;border-bottom:1px solid var(--color-gray-200);display:flex;align-items:center;padding:0 24px;gap:32px;width:100%;">
-          <div style="font-size:15px;font-weight:700;color:var(--color-gray-900);display:flex;align-items:center;gap:8px;">
-            <div style="width:28px;height:28px;background:var(--color-primary);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;font-weight:700;">W</div>
-            Work Design Tool
-          </div>
-          <nav style="display:flex;gap:4px;align-items:center;">
-            <a href="#" onclick="return false" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--color-gray-500);" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">作業設計</a>
-            <a href="#" onclick="return false" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--color-gray-500);" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="this.style.background='transparent'">テキスト変換</a>
-
-            <!-- マスタ ドロップダウン -->
-            <div class="dd-wrap" style="position:relative;" onmouseleave="this.querySelector('.dd-menu').style.display='none'">
-              <button onclick="var m=this.nextElementSibling;m.style.display=m.style.display==='block'?'none':'block'" onmouseenter="this.nextElementSibling.style.display='block'" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;" onmouseover="this.style.background='var(--color-gray-100)'" onmouseout="">マスタ <span style="font-size:9px;opacity:.7;">▼</span></button>
-              <!-- 透明ブリッジ -->
-              <div style="position:absolute;top:100%;left:0;width:100%;height:4px;"></div>
-              <div class="dd-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--color-gray-200);border-radius:8px;min-width:160px;box-shadow:var(--shadow-dropdown);overflow:hidden;z-index:100;">
-                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);transition:background .1s;" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">取引先アドレス</a>
-              </div>
-            </div>
-
-            <!-- 実績管理 ドロップダウン（アクティブ状態） -->
-            <div class="dd-wrap" style="position:relative;" onmouseleave="this.querySelector('.dd-menu2').style.display='none'">
-              <button onclick="var m=this.nextElementSibling.nextElementSibling;m.style.display=m.style.display==='block'?'none':'block'" onmouseenter="this.nextElementSibling.nextElementSibling.style.display='block'" style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-primary-light);cursor:pointer;color:var(--color-primary);display:flex;align-items:center;gap:3px;font-family:inherit;">実績管理 <span style="font-size:9px;opacity:.7;">▼</span></button>
-              <div style="position:absolute;top:100%;left:0;width:100%;height:4px;"></div>
-              <div class="dd-menu2" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#fff;border:1px solid var(--color-gray-200);border-radius:8px;min-width:160px;box-shadow:var(--shadow-dropdown);overflow:hidden;z-index:100;">
-                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;background:var(--color-primary-light);color:var(--color-primary);">実績一覧</a>
-                <a href="#" onclick="return false" style="display:block;padding:10px 16px;font-size:13px;font-weight:500;text-decoration:none;color:var(--color-gray-700);" onmouseover="this.style.background='var(--color-gray-50)'" onmouseout="this.style.background='transparent'">CSVアップロード</a>
-              </div>
-            </div>
-          </nav>
-        </div>
-      </div>
-    </div>
-
-    <p class="component-name" style="margin-top:24px;">STATES</p>
-    <div class="demo-block">
-      <div class="demo-canvas" style="gap:12px;flex-wrap:wrap;justify-content:flex-start;">
-        <div style="position:relative;display:inline-block;">
-          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:transparent;cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;">通常 <span style="font-size:9px;opacity:.7;">▼</span></button>
-        </div>
-        <div style="position:relative;display:inline-block;">
-          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-gray-100);cursor:pointer;color:var(--color-gray-500);display:flex;align-items:center;gap:3px;font-family:inherit;">ホバー <span style="font-size:9px;opacity:.7;">▼</span></button>
-        </div>
-        <div style="position:relative;display:inline-block;">
-          <button style="font-size:13px;font-weight:600;padding:6px 10px;border-radius:6px;border:none;background:var(--color-primary-light);cursor:pointer;color:var(--color-primary);display:flex;align-items:center;gap:3px;font-family:inherit;">アクティブ <span style="font-size:9px;opacity:.7;">▼</span></button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       Rowspan テーブル
-       ============================================================ -->
-
-  <!-- ============================================================
-       Modal パターン
-       ============================================================ -->
-
-</main>
+  </main>
 
 </body>
 </html>

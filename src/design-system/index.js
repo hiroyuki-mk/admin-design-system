@@ -12,6 +12,6 @@ export { Input, Textarea, Checkbox }     from './components/Input';
 export { Card, SectionTitle, Divider }   from './components/Card';
 export { PageHeader }                    from './components/PageHeader';
 export { FormField, BadgeLabel }         from './components/FormField';
-export { DataTable, Pagination }         from './components/Table';
+export { DataTable, Pagination, SearchInput } from './components/Table';
 export { Modal }                         from './components/Modal';
 export { Badge }                         from './components/Badge';

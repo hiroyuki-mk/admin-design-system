@@ -1,7 +1,31 @@
 /**
- * Table / Pagination — Admin Design System
+ * Table / Pagination / SearchInput — Admin Design System
  *
- * 一覧画面のテーブルとページネーションを統一する。
+ * 一覧画面のテーブル・ページネーション・検索バーを統一する。
+ *
+ * ─────────────────────────────────────────
+ * <SearchInput>
+ *   value:       検索文字列（state）
+ *   onChange:    入力値の更新のみ（クエリは発火しない）
+ *   onSearch:    Enter キー押下時に呼ばれる（クエリ実行）
+ *   onClear:     × ボタン押下時に呼ばれる（クリア＋先頭ページに戻る）
+ *   placeholder: プレースホルダー文字列
+ *
+ * 使用例:
+ *   <SearchInput
+ *     value={searchTerm}
+ *     onChange={setSearchTerm}
+ *     onSearch={execSearch}
+ *     onClear={clearSearch}
+ *     placeholder="件名で検索（前方一致）"
+ *   />
+ *
+ * 備考:
+ *   - 入力中はクエリを発火しない（Enter キーで実行）
+ *   - value が空でない場合のみ × ボタンを表示
+ *   - カーソルページネーション（useSearchablePagination）と組み合わせて使用する
+ *   - 検索中（isSearching=true）はページャーの << / >> を非表示にすること
+ *     （limitToLast と startAt/endAt の併用不可のため）
  *
  * ─────────────────────────────────────────
  * <DataTable>
@@ -178,5 +202,39 @@ function NavButton({ children, onClick, disabled }) {
     >
       {children}
     </button>
+  );
+}
+
+/* ---------- SearchInput ---------- */
+export function SearchInput({ value, onChange, onSearch, onClear, placeholder }) {
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') onSearch(value);
+  };
+  return (
+    <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+      <input
+        type="text"
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-80 px-3.5 py-2.5 border border-gray-300 rounded-input text-sm text-gray-900 bg-white outline-none focus:border-primary"
+        style={{ paddingRight: value ? '2rem' : undefined }}
+      />
+      {value && (
+        <button
+          onClick={onClear}
+          style={{
+            position: 'absolute', right: '0.5rem',
+            background: 'none', border: 'none', cursor: 'pointer',
+            color: '#9CA3AF', fontSize: '1rem', lineHeight: 1,
+            display: 'flex', alignItems: 'center', padding: '2px',
+          }}
+          aria-label="クリア"
+        >
+          ×
+        </button>
+      )}
+    </div>
   );
 }
